@@ -1,4 +1,7 @@
 
+#ifndef EVALUATION_H
+#define EVALUATION_H
+
 #include <vector>
 typedef const std::vector<double>& GENOME;
 
@@ -49,32 +52,34 @@ inline bool isEqual(double a, double b) { return abs(a-b) < 0.001; }
 
 // Geometry functions
 
-double r1x1, r1y1, r1x2, r1y2, r2x1, r2y1, r2x2, r2y2;
-double getEdgeDistance(GENOME genome, int first, int second)
+inline double getEdgeDistance(double r1x1, double r1y1, double r1x2, double r1y2, double r2x1, double r2y1, double r2x2, double r2y2)
 {
-    r1x1 = genome[first], r1y1 = genome[first+1], r1x2 = r1x1 + genome[first+2], r1y2 = r1y1 + genome[first+3];
-    r2x1 = genome[second], r2y1 = genome[second+1], r2x2 = r2x1 + genome[second+2], r2y2 = r2y1 + genome[second+3];
-
     return min(min(min(abs(r1x1 - r2x1), abs(r1x1 - r2x2)), min(abs(r1x2 - r2x1), abs(r1x2 - r2x2))),
                min(min(abs(r1y1 - r2y1), abs(r1y1 - r2y2)), min(abs(r1y2 - r2y1), abs(r1y2 - r2y2))));
 }
 
-double getIntersectionArea(GENOME genome, int first, int second)
+inline double getIntersectionArea(double r1x1, double r1y1, double r1x2, double r1y2, double r2x1, double r2y1, double r2x2, double r2y2)
 {
-    r1x1 = genome[first], r1y1 = genome[first+1], r1x2 = r1x1 + genome[first+2], r1y2 = r1y1 + genome[first+3];
-    r2x1 = genome[second], r2y1 = genome[second+1], r2x2 = r2x1 + genome[second+2], r2y2 = r2y1 + genome[second+3];
-
     double area = (max(r1x1, r2x1) - min(r1x2, r2x2)) * (max(r1y1, r2y1) - min(r1y2, r2y2));
     return area > 0 ? area : 0;
 }
 
+double getEdgeDistance(GENOME genome, int first, int second)
+{
+    return getEdgeDistance(genome[first], genome[first+1], genome[first] + genome[first+2], genome[first+1] + genome[first+3],
+                           genome[second], genome[second+1], genome[second] + genome[second+2], genome[second+1] + genome[second+3]);
+}
+
+double getIntersectionArea(GENOME genome, int first, int second)
+{
+    return getEdgeDistance(genome[first], genome[first+1], genome[first] + genome[first+2], genome[first+1] + genome[first+3],
+                           genome[second], genome[second+1], genome[second] + genome[second+2], genome[second+1] + genome[second+3]);
+}
+
 double getIntersectionAreaWithSpace(GENOME genome, int index)
 {
-    r1x1 = genome[index], r1y1 = genome[index+1], r1x2 = r1x1 + genome[index+2], r1y2 = r1y1 + genome[index+3];
-    r2x1 = 0, r2y1 = 0, r2x2 = r2x1 + space_width, r2y2 = r2y1 + space_height;
-
-    double area = (max(r1x1, r2x1) - min(r1x2, r2x2)) * (max(r1y1, r2y1) - min(r1y2, r2y2));
-    return area > 0 ? area : 0;
+    return getEdgeDistance(genome[index], genome[index+1], genome[index] + genome[index+2], genome[index+1] + genome[index+3],
+                           0, 0, space_width, space_height);
 }
 
 
@@ -147,3 +152,5 @@ double real_value(GENOME genome)
 
     return penalty;
 }
+
+#endif
