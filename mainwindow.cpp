@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
+#include <QDir>
 
 #include <evaluate.h>
 
@@ -58,7 +59,7 @@ void MainWindow::on_bExecute_clicked()
 //    ######    Persistence             ######
 //    # --Load=                                  # -L : A save file to restart from
 //    # --recomputeFitness=0                     # -r : Recompute the fitness after re-loading the pop.?
-    command += " --saveFrequency=50";
+    command += " --saveFrequency=10";
 //    # --saveTimeInterval=0                     # Save every T seconds (0 or absent = never)
 //    # --status=t-eoESAll.status                # Status file
 
@@ -81,4 +82,72 @@ void MainWindow::on_bExecute_clicked()
 //    # --TauLoc=1                               # -l : Local Tau (before normalization)
 
     system(command.toAscii());
+
+    // load input
+    generations.clear();
+    QDir dir("/home/alireza/repo/had/input");
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); i++)
+        generations << list.at(i).filePath();
+
+    ui->sGenerations->setMaximum(generations.count()-1);
+    loadGeneration(-1);
+}
+
+void MainWindow::loadGeneration(int index)
+{
+    if (index == -1) index = generations.count() - 1;
+    gen = index;
+
+    QFile file(generations[gen]);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    populations.clear();
+    while (!file.atEnd()) {
+        QString line = file.readLine();
+
+        if (line.startsWith("\\section{eoPop}"))
+        {
+           int size = file.readLine().trimmed().toInt();
+
+           for (int i = 0; i < size; i++)
+               populations << file.readLine();
+        }
+    }
+
+    loadPopulation(0);
+}
+
+void MainWindow::loadPopulation(int index)
+{
+    if (index < 0) index = 0;
+    if (index >= populations.count()) index = populations.count() - 1;
+    pop = index;
+
+    QStringList values = populations[pop].split(" ");
+
+    int size = values[2].toInt();
+
+    vector<double> genome;
+    for (int i = 3; i < size; i++)
+        genome.push_back(values[i].toDouble());
+
+    ui->viewer->setGenome(genome);
+    ui->lSum->setText(QString("%1").arg(real_value(genome)));
+}
+
+void MainWindow::on_bNext_clicked()
+{
+    loadPopulation(pop + 1);
+}
+
+void MainWindow::on_bPrevious_clicked()
+{
+    loadPopulation(pop - 1);
+}
+
+void MainWindow::on_sGenerations_actionTriggered(int action)
+{
+    loadGeneration(ui->sGenerations->value());
 }
