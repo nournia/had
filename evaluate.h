@@ -50,36 +50,39 @@ inline double getArea(GENOME genome, int i) { return genome[i*4+2] * genome[i*4+
 inline bool isEqual(double a, double b) { return abs(a-b) < 0.001; }
 
 
-// Geometry functions
+// Geometry
 
-inline double getEdgeDistance(double r1x1, double r1y1, double r1x2, double r1y2, double r2x1, double r2y1, double r2x2, double r2y2)
-{
-    return min(min(min(abs(r1x1 - r2x1), abs(r1x1 - r2x2)), min(abs(r1x2 - r2x1), abs(r1x2 - r2x2))),
-               min(min(abs(r1y1 - r2y1), abs(r1y1 - r2y2)), min(abs(r1y2 - r2y1), abs(r1y2 - r2y2))));
-}
+class Rect {
 
-inline double getIntersectionArea(double r1x1, double r1y1, double r1x2, double r1y2, double r2x1, double r2y1, double r2x2, double r2y2)
+public:
+    double x1, y1, x2, y2;
+
+    Rect(double _x1, double _y1, double _x2, double _y2)
+        :x1(_x1), y1(_y1), x2(_x2), y2(_y2)
+    {}
+
+    Rect(GENOME genome, int index)
+    {
+        index *= 4;
+        x1 = genome[index];
+        y1 = genome[index+1];
+        x2 = genome[index] + genome[index+2];
+        y2 = genome[index+1] + genome[index+3];
+    }
+};
+
+
+inline double getIntersectionArea(const Rect& r1, const Rect& r2)
 {
-    double area = (max(r1x1, r2x1) - min(r1x2, r2x2)) * (max(r1y1, r2y1) - min(r1y2, r2y2));
+    double area = (max(r1.x1, r2.x1) - min(r1.x2, r2.x2)) * (max(r1.y1, r2.y1) - min(r1.y2, r2.y2));
     return area > 0 ? area : 0;
 }
 
-double getEdgeDistance(GENOME genome, int first, int second)
+double getEdgeDistance(const Rect& r1, const Rect& r2)
 {
-    return getEdgeDistance(genome[first], genome[first+1], genome[first] + genome[first+2], genome[first+1] + genome[first+3],
-                           genome[second], genome[second+1], genome[second] + genome[second+2], genome[second+1] + genome[second+3]);
-}
+    return min(min(min(abs(r1.x1 - r2.x1), abs(r1.x1 - r2.x2)), min(abs(r1.x2 - r2.x1), abs(r1.x2 - r2.x2))),
+               min(min(abs(r1.y1 - r2.y1), abs(r1.y1 - r2.y2)), min(abs(r1.y2 - r2.y1), abs(r1.y2 - r2.y2))));
 
-double getIntersectionArea(GENOME genome, int first, int second)
-{
-    return getEdgeDistance(genome[first], genome[first+1], genome[first] + genome[first+2], genome[first+1] + genome[first+3],
-                           genome[second], genome[second+1], genome[second] + genome[second+2], genome[second+1] + genome[second+3]);
-}
-
-double getIntersectionAreaWithSpace(GENOME genome, int index)
-{
-    return getEdgeDistance(genome[index], genome[index+1], genome[index] + genome[index+2], genome[index+1] + genome[index+3],
-                           0, 0, space_width, space_height);
 }
 
 
@@ -106,16 +109,19 @@ double getProportionPenalty(GENOME genome, int index)
 
 double getSpaceBoundaryPenalty(GENOME genome, int index)
 {
-    return areaCoeff * (getArea(genome, index) - getIntersectionAreaWithSpace(genome, index));
+    static Rect space(0, 0, space_width, space_height);
+    return areaCoeff * (getArea(genome, index) - getIntersectionArea(Rect(genome, index), space));
 }
 
 double getIntersectionPenalty(GENOME genome, int first, int second)
 {
-    double intersection = getIntersectionArea(genome, first, second);
+    const Rect &r1 = Rect(genome, first), &r2 = Rect(genome, second);
+
+    double intersection = getIntersectionArea(r1, r2);
     double distancePenalty = 0;
 
     if (isEqual(intersection, getArea(genome, first)) || isEqual(intersection, getArea(genome, second)))
-        distancePenalty = getEdgeDistance(genome, first, second);
+        distancePenalty = getEdgeDistance(r1, r2);
 
     return areaCoeff * intersection + distanceCoeff * distancePenalty;
 }
@@ -123,7 +129,7 @@ double getIntersectionPenalty(GENOME genome, int first, int second)
 double getAccessPenalty(GENOME genome, int first, int second)
 {
     if (accesses[first][second])
-        return distanceCoeff * getEdgeDistance(genome, first, second);
+        return distanceCoeff * getEdgeDistance(Rect(genome, first), Rect(genome, second));
 
     return 0;
 }

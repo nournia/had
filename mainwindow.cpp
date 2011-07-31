@@ -44,7 +44,7 @@ void MainWindow::on_bExecute_clicked()
 //    ######    Output                  ######
 //    # --useEval=1                              # Use nb of eval. as counter (vs nb of gen.)
 //    # --useTime=1                              # Display time (s) every generation
-//    command += " --printBestStat=1";
+    command += " --printBestStat=0";
 //    # --printPop=0                             # Print sorted pop. every gen.
 
 //    ######    Output - Disk           ######
@@ -91,12 +91,12 @@ void MainWindow::on_bExecute_clicked()
         generations << list.at(i).filePath();
 
     ui->sGenerations->setMaximum(generations.count()-1);
-    loadGeneration(-1);
+    ui->sGenerations->setValue(generations.count()-1);
+    loadGeneration(generations.count()-1);
 }
 
 void MainWindow::loadGeneration(int index)
 {
-    if (index == -1) index = generations.count() - 1;
     gen = index;
 
     QFile file(generations[gen]);
@@ -130,11 +130,31 @@ void MainWindow::loadPopulation(int index)
     int size = values[2].toInt();
 
     vector<double> genome;
-    for (int i = 3; i < size; i++)
+    for (int i = 3; i < size+3; i++)
         genome.push_back(values[i].toDouble());
 
     ui->viewer->setGenome(genome);
     ui->lSum->setText(QString("%1").arg(real_value(genome)));
+
+    double areaPenalty = 0, proportionPenalty = 0, spaceBoundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0;
+    for (int j, i = 0; i < rooms; i++)
+     {
+         areaPenalty += getAreaPenalty(genome, i);
+         proportionPenalty += getProportionPenalty(genome, i);
+         spaceBoundaryPenalty += getSpaceBoundaryPenalty(genome, i);
+
+         for (j = i+1; j < rooms; j++)
+         {
+             intersectionPenalty += getIntersectionPenalty(genome, i, j);
+             accessPenalty += getAccessPenalty(genome, i, j);
+         }
+     }
+
+    ui->lAreaPenalty->setText(QString("%1").arg(areaPenalty));
+    ui->lProportionPenalty->setText(QString("%1").arg(proportionPenalty));
+    ui->lSpaceBoundaryPenalty->setText(QString("%1").arg(spaceBoundaryPenalty));
+    ui->lIntersectionPenalty->setText(QString("%1").arg(intersectionPenalty));
+    ui->lAccessPenalty->setText(QString("%1").arg(accessPenalty));
 }
 
 void MainWindow::on_bNext_clicked()
