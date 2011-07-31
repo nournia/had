@@ -18,6 +18,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// filename: "generations#.sav"
+struct FilenameLessThan {
+    bool operator()(const QString &s1, const QString &s2) const {
+
+        int start = s1.indexOf("generations") + QString("generations").size();
+        int i1 =  s1.mid(start, s1.size() - start - 4).toInt();
+        int i2 =  s2.mid(start, s2.size() - start - 4).toInt();
+        return i1 < i2;
+    }
+};
+
 void MainWindow::on_bExecute_clicked()
 {
     QString command = "/home/alireza/repo/EO-1.2.0/eo/release/tutorial/Lesson4/had";
@@ -88,7 +99,11 @@ void MainWindow::on_bExecute_clicked()
     QDir dir("/home/alireza/repo/had/input");
     QFileInfoList list = dir.entryInfoList();
     for (int i = 0; i < list.size(); i++)
-        generations << list.at(i).filePath();
+        if (list.at(i).filePath().endsWith(".sav"))
+            generations << list.at(i).filePath();
+
+    FilenameLessThan le;
+    qSort(generations.begin(), generations.end(), le);
 
     ui->sGenerations->setMaximum(generations.count()-1);
     ui->sGenerations->setValue(generations.count()-1);
