@@ -25,7 +25,7 @@ void MainWindow::on_bExecute_clicked()
     command += " --seed=" + ui->sSeed->text();
 
 //    ######    ES mutation             ######
-//    # --Isotropic=1                            # -i : Isotropic self-adaptive mutation
+    command += " --Isotropic=1";
 //    # --Stdev=0                                # -s : One self-adaptive stDev per variable
 //    # --Correl=0                               # -c : Use correlated mutations
 
@@ -39,7 +39,7 @@ void MainWindow::on_bExecute_clicked()
 //    ######    Genotype Initialization    ######
     command += " --vecSize=32";
     command += " --initBounds=32[0,6]";
-    command += " --sigmaInit=0.3%";
+    command += " --sigmaInit=0.5%";
 
 //    ######    Output                  ######
 //    # --useEval=1                              # Use nb of eval. as counter (vs nb of gen.)
@@ -59,7 +59,7 @@ void MainWindow::on_bExecute_clicked()
 //    ######    Persistence             ######
 //    # --Load=                                  # -L : A save file to restart from
 //    # --recomputeFitness=0                     # -r : Recompute the fitness after re-loading the pop.?
-    command += " --saveFrequency=10";
+    command += " --saveFrequency=20";
 //    # --saveTimeInterval=0                     # Save every T seconds (0 or absent = never)
 //    # --status=t-eoESAll.status                # Status file
 
@@ -119,6 +119,11 @@ void MainWindow::loadGeneration(int index)
     loadPopulation(0);
 }
 
+double present(double value)
+{
+    return round(1000 * value) / 1000;
+}
+
 void MainWindow::loadPopulation(int index)
 {
     if (index < 0) index = 0;
@@ -134,7 +139,7 @@ void MainWindow::loadPopulation(int index)
         genome.push_back(values[i].toDouble());
 
     ui->viewer->setGenome(genome);
-    ui->lSum->setText(QString("%1").arg(real_value(genome)));
+    ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
     double areaPenalty = 0, proportionPenalty = 0, spaceBoundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0;
     for (int j, i = 0; i < rooms; i++)
@@ -150,11 +155,11 @@ void MainWindow::loadPopulation(int index)
          }
      }
 
-    ui->lAreaPenalty->setText(QString("%1").arg(areaPenalty));
-    ui->lProportionPenalty->setText(QString("%1").arg(proportionPenalty));
-    ui->lSpaceBoundaryPenalty->setText(QString("%1").arg(spaceBoundaryPenalty));
-    ui->lIntersectionPenalty->setText(QString("%1").arg(intersectionPenalty));
-    ui->lAccessPenalty->setText(QString("%1").arg(accessPenalty));
+    ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
+    ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
+    ui->lSpaceBoundaryPenalty->setText(QString("%1").arg(present(spaceBoundaryPenalty)));
+    ui->lIntersectionPenalty->setText(QString("%1").arg(present(intersectionPenalty)));
+    ui->lAccessPenalty->setText(QString("%1").arg(present(accessPenalty)));
 }
 
 void MainWindow::on_bNext_clicked()
@@ -167,7 +172,7 @@ void MainWindow::on_bPrevious_clicked()
     loadPopulation(pop - 1);
 }
 
-void MainWindow::on_sGenerations_actionTriggered(int action)
+void MainWindow::on_sGenerations_sliderMoved(int position)
 {
     loadGeneration(ui->sGenerations->value());
 }

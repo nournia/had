@@ -29,7 +29,7 @@ private slots:
 
     void on_bPrevious_clicked();
 
-    void on_sGenerations_actionTriggered(int action);
+    void on_sGenerations_sliderMoved(int position);
 
 private:
     Ui::MainWindow *ui;
