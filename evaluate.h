@@ -16,8 +16,6 @@ namespace house {
 }
 using namespace house;
 
-const int distanceCoeff = 1, areaCoeff = 1;
-
 void initHouse()
 {
     rooms = 8;
@@ -47,8 +45,7 @@ void initHouse()
 inline double getWidth(GENOME genome, int i) { return genome[i*4+2]; }
 inline double getHeight(GENOME genome, int i) { return genome[i*4+3]; }
 inline double getArea(GENOME genome, int i) { return genome[i*4+2] * genome[i*4+3]; }
-inline bool isEqual(double a, double b) { return abs(a-b) < 0.001; }
-
+inline bool isEqual(double a, double b) { return fabs(a-b) < 0.001; }
 
 // Geometry
 
@@ -78,11 +75,16 @@ inline double getIntersectionArea(const Rect& r1, const Rect& r2)
     return area > 0 ? area : 0;
 }
 
+// positve means rectangls don't have intersection
 double getEdgeDistance(const Rect& r1, const Rect& r2)
 {
-    return min(min(min(abs(r1.x1 - r2.x1), abs(r1.x1 - r2.x2)), min(abs(r1.x2 - r2.x1), abs(r1.x2 - r2.x2))),
-               min(min(abs(r1.y1 - r2.y1), abs(r1.y1 - r2.y2)), min(abs(r1.y2 - r2.y1), abs(r1.y2 - r2.y2))));
+    double l = r1.x1 - r2.x2, r = r1.x2 - r2.x1,
+           u = r1.y1 - r2.y2, d = r1.y2 - r2.y1;
 
+    double minX = min(fabs(l), fabs(r)) * (l*r < 0 ? -1 : 1),
+           minY = min(fabs(u), fabs(d)) * (u*d < 0 ? -1 : 1);
+
+    return fabs(minX) < fabs(minY) ? minX : minY;
 }
 
 
@@ -90,7 +92,7 @@ double getEdgeDistance(const Rect& r1, const Rect& r2)
 
 double getAreaPenalty(GENOME genome, int index)
 {
-    return areaCoeff * abs(areas[index] - getArea(genome, index));
+    return 2 * sqrt(fabs(areas[index] - getArea(genome, index)));
 }
 
 double getProportionPenalty(GENOME genome, int index)
@@ -109,27 +111,30 @@ double getProportionPenalty(GENOME genome, int index)
 
 double getSpaceBoundaryPenalty(GENOME genome, int index)
 {
-    static Rect space(0, 0, space_width, space_height);
-    return areaCoeff * (getArea(genome, index) - getIntersectionArea(Rect(genome, index), space));
+    static Rect r1(0, 0, space_width, space_height);
+    Rect r2(genome, index);
+
+    double l = r1.x1 - r2.x1, r = r2.x2 - r1.x2,
+           u = r1.y1 - r2.y1, d = r2.y2 - r1.y2;
+
+    return (l > 0 ? l : 0) + (r > 0 ? r : 0) + (u > 0 ? u : 0) + (d > 0 ? d : 0);
 }
 
 double getIntersectionPenalty(GENOME genome, int first, int second)
 {
     const Rect &r1 = Rect(genome, first), &r2 = Rect(genome, second);
 
-    double intersection = getIntersectionArea(r1, r2);
-    double distancePenalty = 0;
+    double distance = getEdgeDistance(r1, r2);
 
-    if (isEqual(intersection, getArea(genome, first)) || isEqual(intersection, getArea(genome, second)))
-        distancePenalty = getEdgeDistance(r1, r2);
-
-    return areaCoeff * intersection + distanceCoeff * distancePenalty;
+    return distance < 0 ? fabs(distance) : 0;
 }
 
 double getAccessPenalty(GENOME genome, int first, int second)
 {
+    double d = fabs(getEdgeDistance(Rect(genome, first), Rect(genome, second)));
+
     if (accesses[first][second])
-        return distanceCoeff * getEdgeDistance(Rect(genome, first), Rect(genome, second));
+        return fabs(getEdgeDistance(Rect(genome, first), Rect(genome, second)));
 
     return 0;
 }
