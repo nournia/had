@@ -92,7 +92,7 @@ double getEdgeDistance(const Rect& r1, const Rect& r2)
 
 double getAreaPenalty(GENOME genome, int index)
 {
-    return 2 * sqrt(fabs(areas[index] - getArea(genome, index)));
+    return fabs(areas[index] - getArea(genome, index));
 }
 
 double getProportionPenalty(GENOME genome, int index)
@@ -129,12 +129,35 @@ double getIntersectionPenalty(GENOME genome, int first, int second)
     return distance < 0 ? fabs(distance) : 0;
 }
 
+const int offset = 1; // door width
+inline double getAlign(double r11, double r12, double r21, double r22)
+{
+    double align = 0;
+    double a1 = r11 + offset, a2 = r12 - offset;
+    if (r22 < a1) align = a1 - r22;
+    if (r21 > a2) align = r21 - a2;
+    if (r22 < a1 && r21 > a2) align = 0;
+    return align;
+}
+
+
 double getAccessPenalty(GENOME genome, int first, int second)
 {
-    double d = fabs(getEdgeDistance(Rect(genome, first), Rect(genome, second)));
-
     if (accesses[first][second])
-        return fabs(getEdgeDistance(Rect(genome, first), Rect(genome, second)));
+    {
+        const Rect &r1 = Rect(genome, first), &r2 = Rect(genome, second);
+
+        double l = r1.x1 - r2.x2, r = r1.x2 - r2.x1,
+               u = r1.y1 - r2.y2, d = r1.y2 - r2.y1;
+
+        double minX = min(fabs(l), fabs(r)),
+               minY = min(fabs(u), fabs(d));
+
+        double xalign = getAlign(r1.x1, r1.x2, r2.x1, r2.x2),
+               yalign = getAlign(r1.y1, r1.y2, r2.y1, r2.y2);
+
+        return min(minX + xalign, minY + yalign);
+    }
 
     return 0;
 }
