@@ -13,19 +13,29 @@ namespace house {
     double space_width, space_height;
     bool** accesses;
     double* areas;
+
+    // lights // 0: no light, 1: middle, 2: extreme
+    int* lights;
+    int space_light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
+
+    double areaCoeff, intersectionCoeff, boundaryCoeff, proportionCoeff, accessCoeff, lightCoeff;
+
 }
 using namespace house;
 
 void initHouse()
 {
+    // Space
     rooms = 8;
-    space_width = 10;
-    space_height = 10;
+    space_width = 10; space_height = 10;
+    space_light[0] = 2; space_light[1] = 1; space_light[2] = 0; space_light[3] = 0;
+
 
     // Areas
     areas = new double[8];
     // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
     areas[0] = 35; areas[1] = 15; areas[2] = 9; areas[3] = 12; areas[4] = 3; areas[5] = 4; areas[6] = 10.5; areas[7] = 2.5;
+
 
     // Accesses
     accesses = new bool*[rooms];
@@ -36,9 +46,26 @@ void initHouse()
              accesses[i][j] = 0;
     }
 
-     accesses[0][1] = 1; accesses[0][2] = 1; accesses[0][3] = 1; accesses[0][5] = 1; accesses[0][6] = 1; // "livingroom": ["kitchen", "bedroom1", "bedroom2", "toilet", "stairs"]
-     accesses[3][4] = 1; // "bedroom2": ["bathroom"]
-     accesses[6][7] = 1; // "stairs": ["elevator"]
+    accesses[0][1] = 1; accesses[0][2] = 1; accesses[0][3] = 1; accesses[0][5] = 1; accesses[0][6] = 1; // "livingroom": ["kitchen", "bedroom1", "bedroom2", "toilet", "stairs"]
+    accesses[3][4] = 1; // "bedroom2": ["bathroom"]
+    accesses[6][7] = 1; // "stairs": ["elevator"]
+
+
+    // Lights
+    lights = new int[rooms];
+    for (int i = 0; i < rooms; i++) lights[i] = 0;
+
+    lights[0] = 2; // livingroom
+    lights[1] = 1; lights[2] = 1; lights[3] = 1; // kitchen, bedroom1, bedroom2
+
+
+    // Coefficients
+    areaCoeff = 1;
+    intersectionCoeff = 1;
+    boundaryCoeff = 1;
+    proportionCoeff = 1;
+    accessCoeff = 1;
+    lightCoeff = 1;
 }
 
 
@@ -89,10 +116,9 @@ double getEdgeDistance(const Rect& r1, const Rect& r2)
 
 
 // Penalty functions
-
 double getAreaPenalty(GENOME genome, int index)
 {
-    return fabs(areas[index] - getArea(genome, index));
+    return areaCoeff * (fabs(areas[index] - getArea(genome, index)));
 }
 
 double getProportionPenalty(GENOME genome, int index)
@@ -106,10 +132,10 @@ double getProportionPenalty(GENOME genome, int index)
     if (ratio < 1 && ratio > 0.7)
         return 0; // good ratio
 
-    return pow(2, 1/ratio);
+    return proportionCoeff * pow(2, 1/ratio);
 }
 
-double getSpaceBoundaryPenalty(GENOME genome, int index)
+double getBoundaryPenalty(GENOME genome, int index)
 {
     static Rect r1(0, 0, space_width, space_height);
     Rect r2(genome, index);
@@ -117,7 +143,7 @@ double getSpaceBoundaryPenalty(GENOME genome, int index)
     double l = r1.x1 - r2.x1, r = r2.x2 - r1.x2,
            u = r1.y1 - r2.y1, d = r2.y2 - r1.y2;
 
-    return (l > 0 ? l : 0) + (r > 0 ? r : 0) + (u > 0 ? u : 0) + (d > 0 ? d : 0);
+    return boundaryCoeff * ((l > 0 ? l : 0) + (r > 0 ? r : 0) + (u > 0 ? u : 0) + (d > 0 ? d : 0));
 }
 
 double getIntersectionPenalty(GENOME genome, int first, int second)
@@ -126,7 +152,7 @@ double getIntersectionPenalty(GENOME genome, int first, int second)
 
     double distance = getEdgeDistance(r1, r2);
 
-    return distance < 0 ? fabs(distance) : 0;
+    return intersectionCoeff * (distance < 0 ? fabs(distance) : 0);
 }
 
 const int offset = 1; // door width
@@ -139,7 +165,6 @@ inline double getAlign(double r11, double r12, double r21, double r22)
     if (r22 < a1 && r21 > a2) align = 0;
     return align;
 }
-
 
 double getAccessPenalty(GENOME genome, int first, int second)
 {
@@ -156,10 +181,31 @@ double getAccessPenalty(GENOME genome, int first, int second)
         double xalign = getAlign(r1.x1, r1.x2, r2.x1, r2.x2),
                yalign = getAlign(r1.y1, r1.y2, r2.y1, r2.y2);
 
-        return min(minX + xalign, minY + yalign);
+        return accessCoeff * min(minX + xalign, minY + yalign);
     }
 
     return 0;
+}
+
+double getLightPenalty(GENOME genome, int index)
+{
+    if (! lights[index])
+        return 0;
+
+    static Rect space(0, 0, space_width, space_height);
+    Rect room(genome, index);
+
+    double d[4]; d[0] = room.y1 - space.y1; d[1] = space.x2 - room.x2; d[2] = space.y2 - room.y2; d[3] = room.x1 - space.x1;
+
+    double minD = 100000, mini = -1;
+    for (int i = 0; i < 4; i++)
+        if (lights[index] <= space_light[i] && d[i] < minD)
+        {
+            minD = d[i];
+            mini = i;
+        }
+
+    return lightCoeff * (mini >= 0 && minD > 0 ? minD : 0);
 }
 
 // Evaluate
@@ -175,7 +221,8 @@ double real_value(GENOME genome)
      {
          penalty += getAreaPenalty(genome, i);
          penalty += getProportionPenalty(genome, i);
-         penalty += getSpaceBoundaryPenalty(genome, i);
+         penalty += getBoundaryPenalty(genome, i);
+         penalty += getLightPenalty(genome, i);
 
          for (j = i+1; j < rooms; j++)
          {

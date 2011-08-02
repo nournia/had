@@ -156,12 +156,13 @@ void MainWindow::loadPopulation(int index)
     ui->viewer->setGenome(genome);
     ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
-    double areaPenalty = 0, proportionPenalty = 0, spaceBoundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0;
+    double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0;
     for (int j, i = 0; i < rooms; i++)
      {
          areaPenalty += getAreaPenalty(genome, i);
          proportionPenalty += getProportionPenalty(genome, i);
-         spaceBoundaryPenalty += getSpaceBoundaryPenalty(genome, i);
+         boundaryPenalty += getBoundaryPenalty(genome, i);
+         lightPenalty += getLightPenalty(genome, i);
 
          for (j = i+1; j < rooms; j++)
          {
@@ -172,9 +173,10 @@ void MainWindow::loadPopulation(int index)
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
-    ui->lSpaceBoundaryPenalty->setText(QString("%1").arg(present(spaceBoundaryPenalty)));
+    ui->lBoundaryPenalty->setText(QString("%1").arg(present(boundaryPenalty)));
     ui->lIntersectionPenalty->setText(QString("%1").arg(present(intersectionPenalty)));
     ui->lAccessPenalty->setText(QString("%1").arg(present(accessPenalty)));
+    ui->lLightPenalty->setText(QString("%1").arg(present(lightPenalty)));
 }
 
 void MainWindow::on_bNext_clicked()
