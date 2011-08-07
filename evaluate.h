@@ -10,7 +10,7 @@ using namespace std;
 
 namespace house {
     int rooms;
-    double space_width, space_height;
+    double space_width, space_height, out_wall, wall;
     bool** accesses;
     double* areas;
 
@@ -27,7 +27,10 @@ void initHouse()
 {
     // Space
     rooms = 8;
-    space_width = 10; space_height = 10;
+
+    wall = 0.15; out_wall = 0.3;
+    space_width = 10.6; space_height = 10.05;
+    space_width -= 2*out_wall - wall; space_height -= 2*out_wall - wall;
     space_light[0] = 2; space_light[1] = 1; space_light[2] = 0; space_light[3] = 0;
 
 
@@ -65,7 +68,7 @@ void initHouse()
     boundaryCoeff = 1;
     proportionCoeff = 1;
     accessCoeff = 1;
-    lightCoeff = 1;
+    lightCoeff = 0;
 }
 
 
@@ -129,7 +132,7 @@ double getProportionPenalty(GENOME genome, int index)
 
     if (ratio > 1) ratio = 1 / ratio;
 
-    if (ratio < 1 && ratio > 0.7)
+    if (ratio < 1 && ratio > 0.65)
         return 0; // good ratio
 
     return proportionCoeff * pow(2, 1/ratio);

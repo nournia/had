@@ -42,7 +42,7 @@ public:
     GAThread* thread;
 
     void loadGeneration(int index);
-    void loadPopulation(int index);
+    void loadPopulation(int index, QString answer = "");
 
 
 private slots:
@@ -55,6 +55,8 @@ private slots:
     void on_sGenerations_sliderMoved(int position);
 
     void on_bLoad_clicked();
+
+    void on_bSample_clicked();
 
 private:
     Ui::MainWindow *ui;

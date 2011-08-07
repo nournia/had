@@ -139,13 +139,20 @@ double present(double value)
     return round(1000 * value) / 1000;
 }
 
-void MainWindow::loadPopulation(int index)
+void MainWindow::loadPopulation(int index, QString answer)
 {
-    if (index < 0) index = 0;
-    if (index >= populations.count()) index = populations.count() - 1;
-    pop = index;
+    QStringList values;
 
-    QStringList values = populations[pop].split(" ");
+    if (!answer.isEmpty())
+       values = answer.split(" ");
+    else
+    {
+        if (index < 0) index = 0;
+        if (index >= populations.count()) index = populations.count() - 1;
+        pop = index;
+
+        values = populations[pop].split(" ");
+    }
 
     int size = values[2].toInt();
 
@@ -207,7 +214,16 @@ void MainWindow::on_bLoad_clicked()
     FilenameLessThan le;
     qSort(generations.begin(), generations.end(), le);
 
-    ui->sGenerations->setMaximum(generations.count()-1);
-    ui->sGenerations->setValue(generations.count()-1);
-    loadGeneration(generations.count()-1);
+    if (generations.count() > 0)
+    {
+        ui->sGenerations->setMaximum(generations.count()-1);
+        ui->sGenerations->setValue(generations.count()-1);
+        loadGeneration(generations.count()-1);
+    }
+}
+
+void MainWindow::on_bSample_clicked()
+{
+    // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
+    loadPopulation(-1, "x x 32 " "2 2.7 5.25 6.9 " "2.9 0 4.35 2.7 " "7.25 0 2.9 3.85 " "7.25 5.35 2.9 4.25 " "7.25 3.85 2.9 1.5 " "0 6.85 2 2.75 " "0 0 2.9 4.35 " "0 4.35 2 1.35");
 }
