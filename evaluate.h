@@ -68,7 +68,7 @@ void initHouse()
     boundaryCoeff = 1;
     proportionCoeff = 1;
     accessCoeff = 1;
-    lightCoeff = 0;
+    lightCoeff = 1;
 }
 
 
@@ -103,18 +103,6 @@ inline double getIntersectionArea(const Rect& r1, const Rect& r2)
 {
     double area = (max(r1.x1, r2.x1) - min(r1.x2, r2.x2)) * (max(r1.y1, r2.y1) - min(r1.y2, r2.y2));
     return area > 0 ? area : 0;
-}
-
-// positve means rectangls don't have intersection
-double getEdgeDistance(const Rect& r1, const Rect& r2)
-{
-    double l = r1.x1 - r2.x2, r = r1.x2 - r2.x1,
-           u = r1.y1 - r2.y2, d = r1.y2 - r2.y1;
-
-    double minX = min(fabs(l), fabs(r)) * (l*r < 0 ? -1 : 1),
-           minY = min(fabs(u), fabs(d)) * (u*d < 0 ? -1 : 1);
-
-    return fabs(minX) < fabs(minY) ? minX : minY;
 }
 
 
@@ -153,9 +141,13 @@ double getIntersectionPenalty(GENOME genome, int first, int second)
 {
     const Rect &r1 = Rect(genome, first), &r2 = Rect(genome, second);
 
-    double distance = getEdgeDistance(r1, r2);
+    double l = r1.x1 - r2.x2, r = r1.x2 - r2.x1,
+           u = r1.y1 - r2.y2, d = r1.y2 - r2.y1;
 
-    return intersectionCoeff * (distance < 0 ? fabs(distance) : 0);
+    double minX = min(fabs(l), fabs(r)) * (l*r < 0 ? -1 : 1),
+           minY = min(fabs(u), fabs(d)) * (u*d < 0 ? -1 : 1);
+
+    return intersectionCoeff * (minX < 0 && minY < 0 ? min(fabs(minX), fabs(minY)) : 0);
 }
 
 const int offset = 1; // door width
@@ -184,7 +176,7 @@ double getAccessPenalty(GENOME genome, int first, int second)
         double xalign = getAlign(r1.x1, r1.x2, r2.x1, r2.x2),
                yalign = getAlign(r1.y1, r1.y2, r2.y1, r2.y2);
 
-        return accessCoeff * min(minX + xalign, minY + yalign);
+        return accessCoeff * min(minX + yalign, minY + xalign);
     }
 
     return 0;
