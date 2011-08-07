@@ -11,6 +11,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    thread = new GAThread("");
+    connect(thread, SIGNAL(finished()), this, SLOT(on_bExecute_clicked()));
 }
 
 MainWindow::~MainWindow()
@@ -28,6 +31,7 @@ struct FilenameLessThan {
         return i1 < i2;
     }
 };
+
 
 void MainWindow::on_bExecute_clicked()
 {
@@ -50,7 +54,7 @@ void MainWindow::on_bExecute_clicked()
 //    ######    Genotype Initialization    ######
     command += " --vecSize=32";
     command += " --initBounds=32[0,6]";
-    command += " --sigmaInit=0.5%";
+    command += " --sigmaInit=0.8%";
 
 //    ######    Output                  ######
 //    # --useEval=1                              # Use nb of eval. as counter (vs nb of gen.)
@@ -79,7 +83,7 @@ void MainWindow::on_bExecute_clicked()
     command += " --steadyGen=100";
 //    # --minGen=0                               # -g : Minimum number of generations
 //    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
-//    # --targetFitness=0                        # -T : Stop when fitness reaches
+    command += " --targetFitness=0";
 //    # --CtrlC=0                                # -C : Terminate current generation upon Ctrl C
 
 //    ######    Variation Operators     ######
@@ -92,22 +96,18 @@ void MainWindow::on_bExecute_clicked()
 //    # --crossStdev=intermediate                # -S : Recombination of mutation strategy parameters (intermediate, discrete or none)
 //    # --TauLoc=1                               # -l : Local Tau (before normalization)
 
-    system(command.toAscii());
+    if (ui->bExecute->text() == "Execute")
+    {
+        thread->command = command;
+        thread->start();
+        ui->bExecute->setText("Stop");
+    } else
+    {
+        thread->quit();
+        ui->bExecute->setText("Execute");
+        on_bLoad_clicked();
+    }
 
-    // load input
-    generations.clear();
-    QDir dir("/home/alireza/repo/had/input");
-    QFileInfoList list = dir.entryInfoList();
-    for (int i = 0; i < list.size(); i++)
-        if (list.at(i).filePath().endsWith(".sav"))
-            generations << list.at(i).filePath();
-
-    FilenameLessThan le;
-    qSort(generations.begin(), generations.end(), le);
-
-    ui->sGenerations->setMaximum(generations.count()-1);
-    ui->sGenerations->setValue(generations.count()-1);
-    loadGeneration(generations.count()-1);
 }
 
 void MainWindow::loadGeneration(int index)
@@ -192,4 +192,22 @@ void MainWindow::on_bPrevious_clicked()
 void MainWindow::on_sGenerations_sliderMoved(int position)
 {
     loadGeneration(ui->sGenerations->value());
+}
+
+void MainWindow::on_bLoad_clicked()
+{
+    // load input
+    generations.clear();
+    QDir dir("/home/alireza/repo/had/input");
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); i++)
+        if (list.at(i).filePath().endsWith(".sav"))
+            generations << list.at(i).filePath();
+
+    FilenameLessThan le;
+    qSort(generations.begin(), generations.end(), le);
+
+    ui->sGenerations->setMaximum(generations.count()-1);
+    ui->sGenerations->setValue(generations.count()-1);
+    loadGeneration(generations.count()-1);
 }
