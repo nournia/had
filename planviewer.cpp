@@ -21,7 +21,7 @@ void PlanViewer::paintEvent(QPaintEvent * event)
 
     int page_width = width() - 2, page_height = height() - 2;
 
-    QStringList rooms = QStringList() << "livingroom" << "kitchen" << "bedroom1" << "bedroom2" << "bathroom" << "toilet" << "stairs" << "elevator";
+    QStringList rooms = QStringList() << "kitchen" << "bedroom1" << "bedroom2" << "bathroom" << "toilet" << "stairs" << "elevator";
 
     double space_width = 10.6, space_height = 10.05, wall = 0.15, out_wall = 0.3;
     double r = min(page_width / space_width, page_height / space_height);

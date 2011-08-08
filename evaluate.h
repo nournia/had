@@ -2,86 +2,21 @@
 #ifndef EVALUATION_H
 #define EVALUATION_H
 
+#include <algorithm>
 #include <vector>
-typedef const std::vector<double>& GENOME;
-
 #include <math.h>
 using namespace std;
 
-namespace house {
-    int rooms;
-    double space_width, space_height, out_wall, wall;
-    bool** accesses;
-    double* areas;
 
-    // lights // 0: no light, 1: middle, 2: extreme
-    int* lights;
-    int space_light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
+// Genome
 
-    double areaCoeff, intersectionCoeff, boundaryCoeff, proportionCoeff, accessCoeff, lightCoeff;
-
-}
-using namespace house;
-
-void initHouse()
-{
-    // Space
-    rooms = 8;
-
-    wall = 0.15; out_wall = 0.3;
-    space_width = 10.6; space_height = 10.05;
-    space_width -= 2*out_wall - wall; space_height -= 2*out_wall - wall;
-    space_light[0] = 2; space_light[1] = 1; space_light[2] = 0; space_light[3] = 0;
-
-
-    // Areas
-    areas = new double[8];
-    // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
-    areas[0] = 12; areas[1] = 4; areas[2] = 4; areas[3] = 4; areas[4] = 1; areas[5] = 1; areas[6] = 4; areas[7] = 1;
-
-    double sum = 0;
-    for (int i = 0; i < rooms; i++)
-        sum += areas[i];
-    for (int i = 0; i < rooms; i++)
-        areas[i] = areas[i] / sum;
-
-
-    // Accesses
-    accesses = new bool*[rooms];
-    for (int i = 0; i < rooms; i++)
-    {
-        accesses[i] = new bool[rooms];
-        for (int j = 0; j < rooms; j++)
-             accesses[i][j] = 0;
-    }
-
-    accesses[0][1] = 1; accesses[0][2] = 1; accesses[0][3] = 1; accesses[0][5] = 1; accesses[0][6] = 1; // "livingroom": ["kitchen", "bedroom1", "bedroom2", "toilet", "stairs"]
-//    accesses[3][4] = 1; // "bedroom2": ["bathroom"]
-    accesses[6][7] = 1; // "stairs": ["elevator"]
-
-
-    // Lights
-    lights = new int[rooms];
-    for (int i = 0; i < rooms; i++) lights[i] = 0;
-
-    lights[0] = 2; // livingroom
-    lights[1] = 1; lights[2] = 1; lights[3] = 1; // kitchen, bedroom1, bedroom2
-
-
-    // Coefficients
-    areaCoeff = 1;
-    intersectionCoeff = 2;
-    boundaryCoeff = 2;
-    proportionCoeff = 1;
-    accessCoeff = 1;
-    lightCoeff = 1;
-}
-
+typedef const std::vector<double>& GENOME;
 
 inline double getWidth(GENOME genome, int i) { return genome[i*4+2]; }
 inline double getHeight(GENOME genome, int i) { return genome[i*4+3]; }
 inline double getArea(GENOME genome, int i) { return genome[i*4+2] * genome[i*4+3]; }
 inline bool isEqual(double a, double b) { return fabs(a-b) < 0.001; }
+
 
 // Geometry
 
@@ -104,6 +39,20 @@ public:
     }
 };
 
+class Point {
+public:
+    double x, y;
+
+    Point(double _x, double _y)
+        : x(_x), y(_y)
+    {}
+
+    inline bool isInRect(Rect& r)
+    {
+        return x > r.x1 && y > r.y1 && x < r.x2 && y < r.y2;
+    }
+};
+
 
 inline double getIntersectionArea(const Rect& r1, const Rect& r2)
 {
@@ -112,7 +61,87 @@ inline double getIntersectionArea(const Rect& r1, const Rect& r2)
 }
 
 
+// House
+
+namespace house {
+    int rooms;
+    double space_width, space_height, out_wall, wall;
+    bool** accesses;
+    double* areas;
+
+    // lights // 0: no light, 1: middle, 2: extreme
+    int* lights;
+    int space_light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
+
+    double areaCoeff, intersectionCoeff, boundaryCoeff, proportionCoeff, accessCoeff, lightCoeff;
+
+    // temporary
+    vector<Point> points;
+}
+using namespace house;
+
+void initHouse()
+{
+    // Space
+    rooms = 7;
+
+    wall = 0.15; out_wall = 0.3;
+    space_width = 10.6; space_height = 10.05;
+    space_width -= 2*out_wall - wall; space_height -= 2*out_wall - wall;
+    space_light[0] = 2; space_light[1] = 1; space_light[2] = 0; space_light[3] = 0;
+
+
+    // Areas
+    areas = new double[rooms];
+    // kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
+    areas[0] = 4; areas[1] = 4; areas[2] = 4; areas[3] = 1; areas[4] = 1; areas[5] = 4; areas[6] = 1;
+
+    double sum = 0;
+    for (int i = 0; i < rooms; i++)
+        sum += areas[i];
+    for (int i = 0; i < rooms; i++)
+        areas[i] = areas[i] / (sum + 12);
+
+
+    // Accesses
+    accesses = new bool*[rooms];
+    for (int i = 0; i < rooms; i++)
+    {
+        accesses[i] = new bool[rooms];
+        for (int j = 0; j < rooms; j++)
+             accesses[i][j] = 0;
+    }
+
+    // rooms are directly accessible from access space including living room and corridors
+    accesses[5][6] = 1; // "stairs": ["elevator"]
+
+    // Lights
+    lights = new int[rooms];
+    for (int i = 0; i < rooms; i++) lights[i] = 0;
+
+    //lights[0] = 2; // livingroom
+    lights[0] = 1; lights[1] = 1; lights[2] = 1; // kitchen, bedroom1, bedroom2
+
+
+    // Distance Points
+    const int size = 5;
+    for (int i = 0; i < size; i++)
+        for (int j = 0; j < size; j++)
+            points.push_back(Point(space_width/(size+1) * (i+1), space_height/(size+1) * (j+1)));
+
+
+    // Coefficients
+    areaCoeff = 1;
+    intersectionCoeff = 2;
+    boundaryCoeff = 2;
+    proportionCoeff = 1;
+    accessCoeff = 1;
+    lightCoeff = 1;
+}
+
+
 // Penalty functions
+
 double getAreaPenalty(GENOME genome, int index)
 {
     static double space_area = space_width * space_height;
@@ -210,6 +239,59 @@ double getLightPenalty(GENOME genome, int index)
     return lightCoeff * (mini >= 0 && minD > 0 ? minD : 0);
 }
 
+inline double getClsoest(vector<double>& vec, double value, bool previous)
+{
+    for (int i = 0; i <= rooms; i++)
+        if (value < vec[i])
+            return vec[i + (previous ? -1 : 0)];
+}
+double getDistancePenalty(GENOME genome)
+{
+    vector<double> ups, downs, lefts, rights;
+    vector<Rect> rects;
+
+    // space
+    lefts.push_back(space_width);
+    rights.push_back(0);
+    ups.push_back(space_height);
+    downs.push_back(0);
+
+    // rooms
+    for (int i = 0; i < rooms; i++)
+    {
+        rects.push_back(Rect(genome, i));
+
+        lefts.push_back(rects[i].x1);
+        rights.push_back(rects[i].x2);
+        ups.push_back(rects[i].y1);
+        downs.push_back(rects[i].y2);
+    }
+
+    sort(lefts.begin(), lefts.end());
+    sort(rights.begin(), rights.end());
+    sort(ups.begin(), ups.end());
+    sort(downs.begin(), downs.end());
+
+
+    double sum = 0, width, height;
+    bool valid;
+    for (int j, i = 0; i < points.size(); i++)
+    {
+        valid = true;
+        for (j = 0; j < rooms; j++)
+            if (points[i].isInRect(rects[j]))
+                { valid = false; break; }
+        if (! valid) continue;
+
+        width = getClsoest(rights, points[i].x, true) - getClsoest(lefts, points[i].x, false);
+        height = getClsoest(downs, points[i].y, true) - getClsoest(ups, points[i].y, false);
+
+        sum += pow(min(width, height), 2);
+    }
+
+    return -sqrt(sum);
+}
+
 // Evaluate
 
 double real_value(GENOME genome)
@@ -232,6 +314,8 @@ double real_value(GENOME genome)
              penalty += getAccessPenalty(genome, i, j);
          }
      }
+
+    penalty += getDistancePenalty(genome);
 
     return penalty;
 }

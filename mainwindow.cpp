@@ -52,8 +52,8 @@ void MainWindow::on_bExecute_clicked()
     command += " --weakElitism=0";
 
 //    ######    Genotype Initialization    ######
-    command += " --vecSize=32";
-    command += " --initBounds=32[0,6]";
+    command += " --vecSize=28";
+    command += " --initBounds=28[0,6]";
     command += " --sigmaInit=0.8%";
 
 //    ######    Output                  ######
@@ -80,14 +80,14 @@ void MainWindow::on_bExecute_clicked()
 
 //    ######    Stopping criterion      ######
     command += " --maxGen=10000";
-    command += " --steadyGen=1000";
+    command += " --steadyGen=100";
 //    # --minGen=0                               # -g : Minimum number of generations
 //    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
-    command += " --targetFitness=0";
+//    command += " --targetFitness=0";
 //    # --CtrlC=0                                # -C : Terminate current generation upon Ctrl C
 
 //    ######    Variation Operators     ######
-    command += " --objectBounds=32[0,10]";
+    command += " --objectBounds=28[0,10]";
 //    # --operator=SGA                           # -o : Description of the operator (SGA only now)
 //    # --pCross=1                               # -C : Probability of Crossover
 //    # --pMut=1                                 # -M : Probability of Mutation
@@ -163,7 +163,7 @@ void MainWindow::loadPopulation(int index, QString answer)
     ui->viewer->setGenome(genome);
     ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
-    double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0;
+    double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, distancePenalty = 0;
     for (int j, i = 0; i < rooms; i++)
      {
          areaPenalty += getAreaPenalty(genome, i);
@@ -177,6 +177,7 @@ void MainWindow::loadPopulation(int index, QString answer)
              accessPenalty += getAccessPenalty(genome, i, j);
          }
      }
+    distancePenalty = getDistancePenalty(genome);
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
@@ -184,6 +185,7 @@ void MainWindow::loadPopulation(int index, QString answer)
     ui->lIntersectionPenalty->setText(QString("%1").arg(present(intersectionPenalty)));
     ui->lAccessPenalty->setText(QString("%1").arg(present(accessPenalty)));
     ui->lLightPenalty->setText(QString("%1").arg(present(lightPenalty)));
+    ui->lDistancePenalty->setText(QString("%1").arg(present(distancePenalty)));
 }
 
 void MainWindow::on_bNext_clicked()
@@ -225,5 +227,5 @@ void MainWindow::on_bLoad_clicked()
 void MainWindow::on_bSample_clicked()
 {
     // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
-    loadPopulation(-1, "x x 32 " "2 2.7 5.25 6.9 " "2.9 0 4.35 2.7 " "7.25 0 2.9 3.85 " "7.25 5.35 2.9 4.25 " "7.25 3.85 2.9 1.5 " "0 6.85 2 2.75 " "0 0 2.9 4.35 " "0 4.35 2 1.35");
+    loadPopulation(-1, "x x 28 " "2.9 0 4.35 2.7 " "7.25 0 2.9 3.85 " "7.25 5.35 2.9 4.25 " "7.25 3.85 2.9 1.5 " "0 6.85 2 2.75 " "0 0 2.9 4.35 " "0 4.35 2 1.35");
 }
