@@ -80,7 +80,7 @@ void MainWindow::on_bExecute_clicked()
 
 //    ######    Stopping criterion      ######
     command += " --maxGen=10000";
-    command += " --steadyGen=100";
+    command += " --steadyGen=1000";
 //    # --minGen=0                               # -g : Minimum number of generations
 //    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
     command += " --targetFitness=0";

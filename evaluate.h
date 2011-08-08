@@ -37,7 +37,13 @@ void initHouse()
     // Areas
     areas = new double[8];
     // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
-    areas[0] = 35; areas[1] = 15; areas[2] = 9; areas[3] = 12; areas[4] = 3; areas[5] = 4; areas[6] = 10.5; areas[7] = 2.5;
+    areas[0] = 12; areas[1] = 4; areas[2] = 4; areas[3] = 4; areas[4] = 1; areas[5] = 1; areas[6] = 4; areas[7] = 1;
+
+    double sum = 0;
+    for (int i = 0; i < rooms; i++)
+        sum += areas[i];
+    for (int i = 0; i < rooms; i++)
+        areas[i] = areas[i] / sum;
 
 
     // Accesses
@@ -50,7 +56,7 @@ void initHouse()
     }
 
     accesses[0][1] = 1; accesses[0][2] = 1; accesses[0][3] = 1; accesses[0][5] = 1; accesses[0][6] = 1; // "livingroom": ["kitchen", "bedroom1", "bedroom2", "toilet", "stairs"]
-    accesses[3][4] = 1; // "bedroom2": ["bathroom"]
+//    accesses[3][4] = 1; // "bedroom2": ["bathroom"]
     accesses[6][7] = 1; // "stairs": ["elevator"]
 
 
@@ -64,8 +70,8 @@ void initHouse()
 
     // Coefficients
     areaCoeff = 1;
-    intersectionCoeff = 1;
-    boundaryCoeff = 1;
+    intersectionCoeff = 2;
+    boundaryCoeff = 2;
     proportionCoeff = 1;
     accessCoeff = 1;
     lightCoeff = 1;
@@ -109,7 +115,8 @@ inline double getIntersectionArea(const Rect& r1, const Rect& r2)
 // Penalty functions
 double getAreaPenalty(GENOME genome, int index)
 {
-    return areaCoeff * (fabs(areas[index] - getArea(genome, index)));
+    static double space_area = space_width * space_height;
+    return areaCoeff * 2 * sqrt(fabs(areas[index] * space_area - getArea(genome, index)));
 }
 
 double getProportionPenalty(GENOME genome, int index)
