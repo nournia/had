@@ -75,8 +75,9 @@ namespace house {
 
     double areaCoeff, intersectionCoeff, boundaryCoeff, proportionCoeff, accessCoeff, lightCoeff;
 
-    // temporary
-    vector<Point> points;
+    // web
+    vector<Point> webPoints;
+    int webSize;
 }
 using namespace house;
 
@@ -123,11 +124,11 @@ void initHouse()
     lights[0] = 1; lights[1] = 1; lights[2] = 1; // kitchen, bedroom1, bedroom2
 
 
-    // Distance Points
-    const int size = 5;
-    for (int i = 0; i < size; i++)
-        for (int j = 0; j < size; j++)
-            points.push_back(Point(space_width/(size+1) * (i+1), space_height/(size+1) * (j+1)));
+    // Web Points
+    webSize = 10;
+    for (int i = 0; i < webSize; i++)
+        for (int j = 0; j < webSize; j++)
+            webPoints.push_back(Point(space_width/(webSize+1) * (i+1), space_height/(webSize+1) * (j+1)));
 
 
     // Coefficients
@@ -135,7 +136,7 @@ void initHouse()
     intersectionCoeff = 2;
     boundaryCoeff = 2;
     proportionCoeff = 1;
-    accessCoeff = 1;
+    accessCoeff = 0;
     lightCoeff = 1;
 }
 
@@ -273,23 +274,34 @@ double getDistancePenalty(GENOME genome)
     sort(downs.begin(), downs.end());
 
 
-    double sum = 0, width, height;
+    double sum = 0, cleft, cright, cup, cdown, length;
     bool valid;
-    for (int j, i = 0; i < points.size(); i++)
+    double lightPoints = 0; int validPoints = 0;
+    for (int j, i = 0; i < webPoints.size(); i++)
     {
         valid = true;
         for (j = 0; j < rooms; j++)
-            if (points[i].isInRect(rects[j]))
+            if (webPoints[i].isInRect(rects[j]))
                 { valid = false; break; }
         if (! valid) continue;
+        validPoints++;
 
-        width = getClsoest(rights, points[i].x, true) - getClsoest(lefts, points[i].x, false);
-        height = getClsoest(downs, points[i].y, true) - getClsoest(ups, points[i].y, false);
+        cleft = getClsoest(lefts, webPoints[i].x, false);
+        cright = getClsoest(rights, webPoints[i].x, true);
+        cup = getClsoest(ups, webPoints[i].y, false);
+        cdown = getClsoest(downs, webPoints[i].y, true);
 
-        sum += pow(min(width, height), 2);
+        lightPoints += (cup == space_height) * space_light[2] + (cright == 0) * space_light[3] + (cdown == 0) * space_light[0] + (cleft == space_width) * space_light[1];
+
+        length = min(cleft - cright, cup - cdown);
+        if (length > 1)
+            sum += pow(length, 2);
     }
+    sum = sqrt(sum / webSize) * 0.5;
 
-    return -sqrt(sum);
+    sum += lightPoints/validPoints * 2;
+
+    return -1 * sum;
 }
 
 // Evaluate
@@ -315,6 +327,7 @@ double real_value(GENOME genome)
          }
      }
 
+    if (penalty < 30)
     penalty += getDistancePenalty(genome);
 
     return penalty;
