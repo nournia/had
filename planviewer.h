@@ -2,6 +2,7 @@
 #define PLANVIEWER_H
 
 #include <QWidget>
+#include <QMouseEvent>
 
 #include <vector>
 using namespace std;
@@ -15,9 +16,18 @@ public:
     void paintEvent(QPaintEvent * event);
 
     vector<double> genome;
+    vector<QRectF> spaces;
 
     void setGenome(vector<double> g);
+
+private:
+    int drag;
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+
 signals:
+    void genomeChanged();
 
 public slots:
 

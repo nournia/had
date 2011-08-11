@@ -12,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    connect(ui->viewer, SIGNAL(genomeChanged()), this, SLOT(displayEvaluations()));
+
     thread = new GAThread("");
     connect(thread, SIGNAL(finished()), this, SLOT(on_bExecute_clicked()));
 }
@@ -40,7 +42,7 @@ void MainWindow::on_bExecute_clicked()
     command += " --seed=" + ui->sSeed->text();
 
 //    ######    ES mutation             ######
-    command += " --Isotropic=1";
+//    command += " --Isotropic=0";
 //    # --Stdev=0                                # -s : One self-adaptive stDev per variable
 //    # --Correl=0                               # -c : Use correlated mutations
 
@@ -74,13 +76,13 @@ void MainWindow::on_bExecute_clicked()
 //    ######    Persistence             ######
 //    # --Load=                                  # -L : A save file to restart from
 //    # --recomputeFitness=0                     # -r : Recompute the fitness after re-loading the pop.?
-    command += " --saveFrequency=20";
+    command += " --saveFrequency=50";
 //    # --saveTimeInterval=0                     # Save every T seconds (0 or absent = never)
 //    # --status=t-eoESAll.status                # Status file
 
 //    ######    Stopping criterion      ######
-    command += " --maxGen=10000";
-    command += " --steadyGen=100";
+    command += " --maxGen=2000";
+    command += " --steadyGen=2000";
 //    # --minGen=0                               # -g : Minimum number of generations
 //    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
 //    command += " --targetFitness=0";
@@ -161,15 +163,23 @@ void MainWindow::loadPopulation(int index, QString answer)
         genome.push_back(values[i].toDouble());
 
     ui->viewer->setGenome(genome);
+    displayEvaluations();
+}
+
+void MainWindow::displayEvaluations()
+{
+    vector<double> genome = ui->viewer->genome;
+
     ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
-    double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, distancePenalty = 0;
+    double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, spacePenalty = 0, sidePenalty = 0;
     for (int j, i = 0; i < rooms; i++)
      {
          areaPenalty += getAreaPenalty(genome, i);
          proportionPenalty += getProportionPenalty(genome, i);
          boundaryPenalty += getBoundaryPenalty(genome, i);
          lightPenalty += getLightPenalty(genome, i);
+         sidePenalty += getSidePenalty(genome, i);
 
          for (j = i+1; j < rooms; j++)
          {
@@ -177,15 +187,23 @@ void MainWindow::loadPopulation(int index, QString answer)
              accessPenalty += getAccessPenalty(genome, i, j);
          }
      }
-    distancePenalty = getDistancePenalty(genome);
+
+    vector<Rect> spaces = getSpaces(genome);
+    ui->viewer->spaces.clear();
+    for (int i = 0; i < spaces.size(); i++)
+        ui->viewer->spaces.push_back(QRectF(spaces[i].x1, spaces[i].y1, spaces[i].x2 - spaces[i].x1, spaces[i].y2 - spaces[i].y1));
+    ui->viewer->update();
+
+    spacePenalty = getSpacePenalty(spaces);
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
     ui->lBoundaryPenalty->setText(QString("%1").arg(present(boundaryPenalty)));
     ui->lIntersectionPenalty->setText(QString("%1").arg(present(intersectionPenalty)));
+    ui->lSidePenalty->setText(QString("%1").arg(present(sidePenalty)));
     ui->lAccessPenalty->setText(QString("%1").arg(present(accessPenalty)));
     ui->lLightPenalty->setText(QString("%1").arg(present(lightPenalty)));
-    ui->lDistancePenalty->setText(QString("%1").arg(present(distancePenalty)));
+    ui->lSpacePenalty->setText(QString("%1").arg(present(spacePenalty)));
 }
 
 void MainWindow::on_bNext_clicked()

@@ -17,8 +17,25 @@ inline double getHeight(GENOME genome, int i) { return genome[i*4+3]; }
 inline double getArea(GENOME genome, int i) { return genome[i*4+2] * genome[i*4+3]; }
 inline bool isEqual(double a, double b) { return fabs(a-b) < 0.001; }
 
+// House
+
+namespace house {
+    int rooms;
+    double space_width, space_height, out_wall, wall;
+    bool** accesses;
+    double* areas;
+
+    // lights // 0: no light, 1: middle, 2: extreme
+    int* lights;
+    int space_light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
+
+    const double areaCoeff = 1, intersectionCoeff = 2, boundaryCoeff = 2, proportionCoeff = 1, accessCoeff = 1, lightCoeff = 1, spaceCoeff = 0.75, sideCoeff = 0.25;
+}
+using namespace house;
 
 // Geometry
+class Rect;
+vector<Rect> rects;
 
 class Rect {
 
@@ -37,6 +54,36 @@ public:
         x2 = genome[index] + genome[index+2];
         y2 = genome[index+1] + genome[index+3];
     }
+
+    inline double getArea() const
+    {
+        return (x2 - x1) * (y2 - y1);
+    }
+
+    inline double getWidth()
+    {
+        return x2 - x1;
+    }
+
+    inline double getHeight()
+    {
+        return y2 - y1;
+    }
+
+    inline double getIntersectionArea(const Rect& r2, double offset = 0.01) const
+    {
+        double w = (max(x1, r2.x1) - min(x2, r2.x2)), h = (max(y1, r2.y1) - min(y2, r2.y2));
+        double area = w < 0 && h < 0 ? w * h : 0;
+        return area > offset ? area : 0;
+    }
+
+    inline bool isEmptyRect()
+    {
+        for (int i = 0; i < rects.size(); i++)
+            if (getIntersectionArea(rects[i]) > 0)
+                return false;
+        return true;
+    }
 };
 
 class Point {
@@ -51,35 +98,23 @@ public:
     {
         return x > r.x1 && y > r.y1 && x < r.x2 && y < r.y2;
     }
+
+    inline bool isEmptyPoint()
+    {
+        if (x < 0 || y < 0 || x > space_width || y > space_height)
+            return false;
+
+        for (int i = 0; i < rects.size(); i++)
+            if (isInRect(rects[i]))
+                return false;
+        return true;
+    }
 };
 
+// web
+vector<Point> webPoints;
+int webSize;
 
-inline double getIntersectionArea(const Rect& r1, const Rect& r2)
-{
-    double area = (max(r1.x1, r2.x1) - min(r1.x2, r2.x2)) * (max(r1.y1, r2.y1) - min(r1.y2, r2.y2));
-    return area > 0 ? area : 0;
-}
-
-
-// House
-
-namespace house {
-    int rooms;
-    double space_width, space_height, out_wall, wall;
-    bool** accesses;
-    double* areas;
-
-    // lights // 0: no light, 1: middle, 2: extreme
-    int* lights;
-    int space_light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
-
-    double areaCoeff, intersectionCoeff, boundaryCoeff, proportionCoeff, accessCoeff, lightCoeff;
-
-    // web
-    vector<Point> webPoints;
-    int webSize;
-}
-using namespace house;
 
 void initHouse()
 {
@@ -129,17 +164,7 @@ void initHouse()
     for (int i = 0; i < webSize; i++)
         for (int j = 0; j < webSize; j++)
             webPoints.push_back(Point(space_width/(webSize+1) * (i+1), space_height/(webSize+1) * (j+1)));
-
-
-    // Coefficients
-    areaCoeff = 1;
-    intersectionCoeff = 2;
-    boundaryCoeff = 2;
-    proportionCoeff = 1;
-    accessCoeff = 0;
-    lightCoeff = 1;
 }
-
 
 // Penalty functions
 
@@ -240,68 +265,133 @@ double getLightPenalty(GENOME genome, int index)
     return lightCoeff * (mini >= 0 && minD > 0 ? minD : 0);
 }
 
-inline double getClsoest(vector<double>& vec, double value, bool previous)
+inline bool findRect(vector<Rect>& rects, Rect& rect)
 {
-    for (int i = 0; i <= rooms; i++)
-        if (value < vec[i])
-            return vec[i + (previous ? -1 : 0)];
+    for (int i = 0; i < rects.size(); i++)
+        if (rects[i].x1 == rect.x1 && rects[i].x2 == rect.x2 && rects[i].y1 == rect.y1 && rects[i].y2 == rect.y2)
+            return true;
+    return false;
 }
-double getDistancePenalty(GENOME genome)
-{
-    vector<double> ups, downs, lefts, rights;
-    vector<Rect> rects;
 
-    // space
-    lefts.push_back(space_width);
-    rights.push_back(0);
-    ups.push_back(space_height);
-    downs.push_back(0);
+vector<Rect> getSpaces(GENOME genome)
+{
+    const double minSpaceLength = 1;
+    vector<Rect> spaces;
+//    vector<Point> points;
 
     // rooms
+    rects.clear();
     for (int i = 0; i < rooms; i++)
     {
-        rects.push_back(Rect(genome, i));
+        Rect r(genome, i);
+        rects.push_back(r);
 
-        lefts.push_back(rects[i].x1);
-        rights.push_back(rects[i].x2);
-        ups.push_back(rects[i].y1);
-        downs.push_back(rects[i].y2);
+//        points.push_back(Point((r.x1 + r.x2)/2, r.y1));
+//        points.push_back(Point((r.x1 + r.x2)/2, r.y2));
+//        points.push_back(Point(r.x1, (r.y1 + r.y2)/2));
+//        points.push_back(Point(r.x2, (r.y1 + r.y2)/2));
     }
 
-    sort(lefts.begin(), lefts.end());
-    sort(rights.begin(), rights.end());
-    sort(ups.begin(), ups.end());
-    sort(downs.begin(), downs.end());
 
-
-    double sum = 0, cleft, cright, cup, cdown, length;
-    bool valid;
-    double lightPoints = 0; int validPoints = 0;
     for (int j, i = 0; i < webPoints.size(); i++)
+    if (webPoints[i].isEmptyPoint())
     {
-        valid = true;
+        double cleft = space_width, cright = 0, cup = space_height, cdown = 0;
+
+        Point& point = webPoints[i];
         for (j = 0; j < rooms; j++)
-            if (webPoints[i].isInRect(rects[j]))
-                { valid = false; break; }
-        if (! valid) continue;
-        validPoints++;
+        {
+            Rect& rect = rects[j];
 
-        cleft = getClsoest(lefts, webPoints[i].x, false);
-        cright = getClsoest(rights, webPoints[i].x, true);
-        cup = getClsoest(ups, webPoints[i].y, false);
-        cdown = getClsoest(downs, webPoints[i].y, true);
+            if (point.y >= rect.y1 && point.y <= rect.y2)
+            {
+                if (point.x <= rect.x1 && cleft - point.x > rect.x1 - point.x) cleft = rect.x1;
+                if (point.x >= rect.x2 && point.x - cright > point.x - rect.x2) cright = rect.x2;
+            }
 
-        lightPoints += (cup == space_height) * space_light[2] + (cright == 0) * space_light[3] + (cdown == 0) * space_light[0] + (cleft == space_width) * space_light[1];
+            if (point.x >= rect.x1 && point.x <= rect.x2)
+            {
+                if (point.y <= rect.y1 && cup - point.y > rect.y1 - point.y) cup = rect.y1;
+                if (point.y >= rect.y2 && point.y - cdown > point.y - rect.y2) cdown = rect.y2;
+            }
+        }
 
-        length = min(cleft - cright, cup - cdown);
-        if (length > 1)
-            sum += pow(length, 2);
+        Rect r(cright, cdown, cleft, cup);
+        if (r.isEmptyRect() && r.getWidth() > minSpaceLength &&  r.getHeight() > minSpaceLength &&  ! findRect(spaces, r))
+            spaces.push_back(r);
     }
-    sum = sqrt(sum / webSize) * 0.5;
 
-    sum += lightPoints/validPoints * 2;
+    return spaces;
+}
 
-    return -1 * sum;
+double getSidePenalty(GENOME genome, int index)
+{
+    static Rect space(0, 0, space_width, space_height);
+    Rect room(genome, index);
+
+    double d[4]; d[0] = room.y1 - space.y1; d[1] = space.x2 - room.x2; d[2] = space.y2 - room.y2; d[3] = room.x1 - space.x1;
+    double minD = 1000;
+    for (int i = 0; i < 4; i++)
+        if (fabs(d[i]) < minD)
+            minD = fabs(d[i]);
+    return sideCoeff * minD;
+}
+
+double getSpacePenalty(const vector<Rect>& spaces)
+{
+    vector<double> areas;
+    for (int i = 0; i < spaces.size(); i++)
+        areas.push_back(spaces[i].getArea());
+    sort(areas.begin(), areas.end());
+
+    double penalty = 0;
+
+//    for (int i = 0; i < int(spaces.size()/3); i++)
+//        penalty += sqrt(areas[i]);
+
+    // minimize number of rectangles
+//    penalty += spaces.size() > 1 ? (spaces.size() - 1) * 2 : 0;
+
+//    // maximaize area of all spaces
+    double sum;
+//    for (int i = 0; i < areas.size(); i++)
+//        sum += pow(areas[i], 2);
+//    penalty -= sqrt(sqrt(sum));
+
+    // biggest space
+    int biggest = -1; double max = 0;
+    for (int i = 0; i < spaces.size(); i++)
+        if (spaces[i].getArea() > max)
+            { max = spaces[i].getArea(); biggest = i; }
+
+    if (biggest >= 0)
+    {
+        double intersection, area;
+
+        // maximize access spaces area
+        penalty -= 2 * sqrt(spaces[biggest].getArea());
+
+        for (int i = 0; i < spaces.size(); i++)
+        if (i != biggest)
+        {
+            intersection = spaces[biggest].getIntersectionArea(spaces[i]);
+            area = spaces[i].getArea() - intersection;
+            if (intersection > 0 && area > 0)
+                sum += pow(area, 2);
+        }
+        penalty -= sqrt(sqrt(sum));
+
+
+        // minimize biggest space distance from light sources
+        static Rect space(0, 0, space_width, space_height);
+        const Rect& room = spaces[biggest];
+
+        double d[4]; d[0] = room.y1 - space.y1; d[1] = space.x2 - room.x2; d[2] = space.y2 - room.y2; d[3] = room.x1 - space.x1;
+        for (int i = 0; i < 4; i++)
+            penalty += d[i] * space_light[i];
+    }
+
+    return spaceCoeff * penalty;
 }
 
 // Evaluate
@@ -319,6 +409,7 @@ double real_value(GENOME genome)
          penalty += getProportionPenalty(genome, i);
          penalty += getBoundaryPenalty(genome, i);
          penalty += getLightPenalty(genome, i);
+         penalty += getSidePenalty(genome, i);
 
          for (j = i+1; j < rooms; j++)
          {
@@ -328,7 +419,10 @@ double real_value(GENOME genome)
      }
 
     if (penalty < 30)
-    penalty += getDistancePenalty(genome);
+    {
+        const vector<Rect>& spaces = getSpaces(genome);
+        penalty += getSpacePenalty(spaces);
+    }
 
     return penalty;
 }

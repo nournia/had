@@ -46,6 +46,8 @@ public:
 
 
 private slots:
+    void displayEvaluations();
+
     void on_bExecute_clicked();
 
     void on_bNext_clicked();
