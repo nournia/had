@@ -21,7 +21,8 @@ public:
     void setGenome(vector<double> g);
 
 private:
-    int drag;
+    const int resizeButtonWidth;
+    int drag, resize;
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);

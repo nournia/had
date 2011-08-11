@@ -5,9 +5,10 @@
 #include <QDebug>
 
 PlanViewer::PlanViewer(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent), resizeButtonWidth(5)
 {
     drag = -1;
+    resize = -1;
 }
 
 void PlanViewer::setGenome(vector<double> g)
@@ -39,8 +40,15 @@ void PlanViewer::paintEvent(QPaintEvent * event)
     for (int i = 0; i < rooms.count(); i++)
     {
         QRect room(r * (genome[4*i] + out_wall), r * (genome[4*i+1] + out_wall), r * (genome[4*i+2] - wall), r * (genome[4*i+3] - wall));
+
+        painter.setBrush(Qt::NoBrush);
         painter.drawRect(room);
         painter.drawText(room, Qt::AlignCenter, rooms[i]);
+
+        // resize button
+        painter.setBrush(Qt::Dense4Pattern);
+        double x1 = room.bottomRight().x() - resizeButtonWidth, y1 = room.bottomRight().y() - resizeButtonWidth;
+        painter.drawRect(x1, y1, resizeButtonWidth, resizeButtonWidth);
     }
 
 
@@ -65,7 +73,11 @@ void PlanViewer::mousePressEvent(QMouseEvent *event)
 
         if (event->pos().x() > room.x() && event->pos().y() > room.y() && event->pos().x() < room.x() + room.width() && event->pos().y() < room.y() + room.height())
         {
-            drag = i;
+            if (event->pos().x() >= room.x() + room.width() - resizeButtonWidth && event->pos().y() >= room.y() + room.height() - resizeButtonWidth)
+                resize = i;
+            else
+                drag = i;
+
             break;
         }
     }
@@ -79,8 +91,17 @@ void PlanViewer::mouseMoveEvent(QMouseEvent *event)
     {
         genome[4*drag] += (event->pos().x() - lastPos.x())/r;
         genome[4*drag+1] += (event->pos().y() - lastPos.y())/r;
-        update();
 
+        update();
+        emit genomeChanged();
+    }
+
+    if (resize >= 0)
+    {
+        genome[4*resize+2] += (event->pos().x() - lastPos.x())/r;
+        genome[4*resize+3] += (event->pos().y() - lastPos.y())/r;
+
+        update();
         emit genomeChanged();
     }
 
@@ -90,4 +111,5 @@ void PlanViewer::mouseMoveEvent(QMouseEvent *event)
 void PlanViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     drag = -1;
+    resize = -1;
 }
