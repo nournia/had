@@ -34,6 +34,7 @@ void PlanViewer::paintEvent(QPaintEvent * event)
 
 
     QPainter painter(this);
+    painter.setBrush(QBrush(QColor(0, 0, 255, 20)));
 //    painter.setBrush(QBrush(QColor("white")));
     painter.drawRect(QRect(0, 0, r * space_width, r * space_height));
 

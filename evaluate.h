@@ -29,7 +29,7 @@ namespace house {
     int* lights;
     int space_light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
 
-    const double areaCoeff = 1, intersectionCoeff = 2, boundaryCoeff = 2, proportionCoeff = 1, accessCoeff = 1, lightCoeff = 1, spaceCoeff = 0.75, sideCoeff = 0.25;
+    const double areaCoeff = 1, intersectionCoeff = 2, boundaryCoeff = 2, proportionCoeff = 1, accessCoeff = 1, lightCoeff = 1, spaceCoeff = 0.75, sideCoeff = 0;
 }
 using namespace house;
 
@@ -111,10 +111,6 @@ public:
     }
 };
 
-// web
-vector<Point> webPoints;
-int webSize;
-
 
 void initHouse()
 {
@@ -157,13 +153,6 @@ void initHouse()
 
     //lights[0] = 2; // livingroom
     lights[0] = 1; lights[1] = 1; lights[2] = 1; // kitchen, bedroom1, bedroom2
-
-
-    // Web Points
-    webSize = 10;
-    for (int i = 0; i < webSize; i++)
-        for (int j = 0; j < webSize; j++)
-            webPoints.push_back(Point(space_width/(webSize+1) * (i+1), space_height/(webSize+1) * (j+1)));
 }
 
 // Penalty functions
@@ -273,11 +262,25 @@ inline bool findRect(vector<Rect>& rects, Rect& rect)
     return false;
 }
 
+void addRectanglePoints(vector<Point>& points, Rect& r)
+{
+    const int parts = 3;
+    double xdiff = (r.x2 - r.x1) / (parts + 1), ydiff = (r.y2 - r.y1) / (parts + 1);
+
+    for (int i = 1; i <= parts; i++)
+    {
+        points.push_back(Point(r.x1 + i*xdiff, r.y1));
+        points.push_back(Point(r.x1 + i*xdiff, r.y2));
+        points.push_back(Point(r.x1, r.y1 + i*ydiff));
+        points.push_back(Point(r.x2, r.y1 + i*ydiff));
+    }
+}
+
 vector<Rect> getSpaces(GENOME genome)
 {
     const double minSpaceLength = 1;
     vector<Rect> spaces;
-//    vector<Point> points;
+    vector<Point> points;
 
     // rooms
     rects.clear();
@@ -285,20 +288,16 @@ vector<Rect> getSpaces(GENOME genome)
     {
         Rect r(genome, i);
         rects.push_back(r);
-
-//        points.push_back(Point((r.x1 + r.x2)/2, r.y1));
-//        points.push_back(Point((r.x1 + r.x2)/2, r.y2));
-//        points.push_back(Point(r.x1, (r.y1 + r.y2)/2));
-//        points.push_back(Point(r.x2, (r.y1 + r.y2)/2));
+        addRectanglePoints(points, r);
     }
 
 
-    for (int j, i = 0; i < webPoints.size(); i++)
-    if (webPoints[i].isEmptyPoint())
+    for (int j, i = 0; i < points.size(); i++)
+    if (points[i].isEmptyPoint())
     {
         double cleft = space_width, cright = 0, cup = space_height, cdown = 0;
 
-        Point& point = webPoints[i];
+        Point& point = points[i];
         for (j = 0; j < rooms; j++)
         {
             Rect& rect = rects[j];
@@ -344,21 +343,22 @@ double getSpacePenalty(const vector<Rect>& spaces)
         areas.push_back(spaces[i].getArea());
     sort(areas.begin(), areas.end());
 
-    double penalty = 0;
+    double penalty = 0, sum;
 
+//    // minimize area of 1/3 of spaces that are small ones.
 //    for (int i = 0; i < int(spaces.size()/3); i++)
 //        penalty += sqrt(areas[i]);
 
-    // minimize number of rectangles
-//    penalty += spaces.size() > 1 ? (spaces.size() - 1) * 2 : 0;
 
-//    // maximaize area of all spaces
-    double sum;
+//    // minimize number of rectangles and maximaize area of all spaces
+//    penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
+
 //    for (int i = 0; i < areas.size(); i++)
 //        sum += pow(areas[i], 2);
 //    penalty -= sqrt(sqrt(sum));
 
-    // biggest space
+
+    // find biggest space
     int biggest = -1; double max = 0;
     for (int i = 0; i < spaces.size(); i++)
         if (spaces[i].getArea() > max)
@@ -418,7 +418,7 @@ double real_value(GENOME genome)
          }
      }
 
-    if (penalty < 30)
+    if (penalty < 40)
     {
         const vector<Rect>& spaces = getSpaces(genome);
         penalty += getSpacePenalty(spaces);
