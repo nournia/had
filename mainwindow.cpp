@@ -172,29 +172,31 @@ void MainWindow::displayEvaluations()
 
     ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
+    House* house = House::house;
+
     double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, spacePenalty = 0, sidePenalty = 0;
-    for (int j, i = 0; i < rooms; i++)
-     {
-         areaPenalty += getAreaPenalty(genome, i);
-         proportionPenalty += getProportionPenalty(genome, i);
-         boundaryPenalty += getBoundaryPenalty(genome, i);
-         lightPenalty += getLightPenalty(genome, i);
-         sidePenalty += getSidePenalty(genome, i);
+    for (int j, i = 0; i < house->room.size(); i++)
+    {
+         areaPenalty += house->getAreaPenalty(i);
+         proportionPenalty += house->getProportionPenalty(i);
+         boundaryPenalty += house->getBoundaryPenalty(i);
+         lightPenalty += house->getLightPenalty(i);
+         sidePenalty += house->getSidePenalty(i);
 
-         for (j = i+1; j < rooms; j++)
+         for (j = i+1; j < house->room.size(); j++)
          {
-             intersectionPenalty += getIntersectionPenalty(genome, i, j);
-             accessPenalty += getAccessPenalty(genome, i, j);
+             intersectionPenalty += house->getIntersectionPenalty(i, j);
+             accessPenalty += house->getAccessPenalty(i, j);
          }
-     }
+    }
 
-    vector<Rect> spaces = getSpaces(genome);
+    vector<Rect>& spaces = house->spaces;
     ui->viewer->spaces.clear();
     for (int i = 0; i < spaces.size(); i++)
         ui->viewer->spaces.push_back(QRectF(spaces[i].x1, spaces[i].y1, spaces[i].x2 - spaces[i].x1, spaces[i].y2 - spaces[i].y1));
     ui->viewer->update();
 
-    spacePenalty = getSpacePenalty(spaces);
+    spacePenalty = house->getSpacePenalty();
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
