@@ -9,7 +9,7 @@ using namespace std;
 
 typedef const std::vector<double>& GENOME;
 
-const double areaCoeff = 1, intersectionCoeff = 2, boundaryCoeff = 2, proportionCoeff = 1, accessCoeff = 1, lightCoeff = 1, spaceCoeff = 0.75, sideCoeff = 0;
+const double areaCoeff = 2.5, intersectionCoeff = 3, boundaryCoeff = 3, accessCoeff = 2, lightCoeff = 1, spaceCoeff = 0.75, sideCoeff = 0;
 
 
 // Geometry
@@ -126,7 +126,7 @@ public:
     vector<Room> room;
     Rect space;
     double out_wall, wall;
-    bool** access;
+    int* access;
     int light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
 
     static House* house;
@@ -146,35 +146,27 @@ public:
             room.push_back(Room());
 
         // Area
-//        rooms[5].sizeLimit.height = 2.5; rooms[5].sizeLimit.width = 4.5;
-//        rooms[6].sizeLimit.height = 1.6; rooms[6].sizeLimit.width = 2;
+        room[5].sizeLimit.height = 2.5; room[5].sizeLimit.width = 4.5; // stairs
+        room[6].sizeLimit.height = 1.6; room[6].sizeLimit.width = 2; // elevator
 
         double emptySpace = space.getWidth() * space.getHeight();
-//        for (int i = 0; i < size; i++)
-//            if (rooms[i].sizeLimit.width)
-//                emptySpace -= rooms[i].sizeLimit.height * rooms[i].sizeLimit.width;
+        for (int i = 0; i < rooms; i++)
+            if (room[i].sizeLimit.width)
+                emptySpace -= (room[i].sizeLimit.height + wall) * (room[i].sizeLimit.width + wall);
 
-        const double all = 4*4 + 3*1 + 12;
+        const double all = 3*4 + 2*1 + 12;
         room[0].areaLimit = emptySpace * 4/all;
         room[1].areaLimit = emptySpace * 4/all;
         room[2].areaLimit = emptySpace * 4/all;
         room[3].areaLimit = emptySpace * 1/all;
         room[4].areaLimit = emptySpace * 1/all;
-        room[5].areaLimit = emptySpace * 4/all;
-        room[6].areaLimit = emptySpace * 1/all;
 
 
         // Access
-        access = new bool*[rooms];
+        access = new int[rooms];
         for (int i = 0; i < rooms; i++)
-        {
-            access[i] = new bool[rooms];
-            for (int j = 0; j < rooms; j++)
-                 access[i][j] = 0;
-        }
-
-        // rooms are directly accessible from access space including living room and corridors
-        access[5][6] = 1; // "stairs": ["elevator"]
+            access[i] = -1; // rooms are directly accessible from access space including living room and corridors
+        access[6] = 5; // "stairs": ["elevator"]
 
         // Lights
         room[0].lightLimit = 1; room[1].lightLimit = 1; room[2].lightLimit = 1; // kitchen, bedroom1, bedroom2
@@ -200,7 +192,7 @@ public:
             addRectanglePoints(points, room[i].rect);
 
         // spaces
-        spaces.clear();
+        vector<Rect> tmps;
         const double minSpaceLength = 1;
         for (int j, i = 0; i < points.size(); i++)
         if (isEmptyPoint(points[i]))
@@ -226,9 +218,23 @@ public:
             }
 
             Rect r(cright, cdown, cleft, cup);
-            if (isEmptyRect(r) && r.getWidth() > minSpaceLength &&  r.getHeight() > minSpaceLength &&  ! findRect(spaces, r))
-                spaces.push_back(r);
+            if (isEmptyRect(r) && r.getWidth() > minSpaceLength &&  r.getHeight() > minSpaceLength &&  ! findRect(tmps, r))
+                tmps.push_back(r);
         }
+
+        // find biggest space
+        int biggest = -1; double max = 0;
+        for (int i = 0; i < tmps.size(); i++)
+            if (tmps[i].getArea() > max)
+                { max = tmps[i].getArea(); biggest = i; }
+
+        // find access spaces
+        spaces.clear();
+        spaces.push_back(tmps[biggest]);
+        for (int i = 0; i < tmps.size(); i++)
+        if (i != biggest)
+            if (spaces[0].getIntersectionArea(tmps[i]) > 0)
+                spaces.push_back(tmps[i]);
     }
 
 
@@ -265,9 +271,23 @@ public:
         return align;
     }
 
+    inline double getAccessDistance(Rect& r1, Rect& r2)
+    {
+        double l = r1.x1 - r2.x2, r = r1.x2 - r2.x1,
+               u = r1.y1 - r2.y2, d = r1.y2 - r2.y1;
+
+        double minX = min(fabs(l), fabs(r)),
+               minY = min(fabs(u), fabs(d));
+
+        double xalign = getAlign(r1.x1, r1.x2, r2.x1, r2.x2),
+               yalign = getAlign(r1.y1, r1.y2, r2.y1, r2.y2);
+
+        return min(minX + yalign, minY + xalign);
+    }
+
     inline double* getSideDistances(const Rect& room)
     {
-        double d[4];
+        double* d = new double[4];
         d[0] = room.y1 - space.y1; d[1] = space.x2 - room.x2; d[2] = space.y2 - room.y2; d[3] = room.x1 - space.x1;
         return d;
     }
@@ -276,9 +296,23 @@ public:
 
     double getAreaPenalty(int index)
     {
-        return areaCoeff * 2 * areaToDistance(room[index].areaLimit - room[index].rect.getArea());
-    }
+        double penalty = 0;
 
+        if (room[index].sizeLimit.width)
+        {
+            double w1 = room[index].rect.getWidth() - wall, h1 = room[index].rect.getHeight() - wall,
+                   w2 = room[index].sizeLimit.width, h2 = room[index].sizeLimit.height;
+
+            penalty += min(fabs(w2 - w1) + fabs(h2 - h1), fabs(w2 - h1) + fabs(h2 - w1));
+
+        } else
+        {
+            penalty += areaToDistance(room[index].areaLimit - room[index].rect.getArea());
+            penalty += getProportionPenalty(index);
+        }
+
+        return areaCoeff * penalty;
+    }
 
     double getProportionPenalty(int index)
     {
@@ -288,10 +322,10 @@ public:
 
         if (ratio > 1) ratio = 1 / ratio;
 
-        if (ratio < 1 && ratio > 0.65)
+        if (ratio < 1 && ratio > 0.6)
             return 0; // good ratio
 
-        return proportionCoeff * pow(2, 1/ratio);
+        return pow(2, 1/ratio);
     }
 
     double getBoundaryPenalty(int index)
@@ -345,30 +379,33 @@ public:
         return intersectionCoeff * (minX < 0 && minY < 0 ? min(fabs(minX), fabs(minY)) : 0);
     }
 
-    double getAccessPenalty(int first, int second)
+    double getAccessPenalty()
     {
-        if (access[first][second])
-        {
-            const Rect &r1 = room[first].rect, &r2 = room[second].rect;
+        double penalty = 0;
+        for (int j, i = 0; i < rooms; i++)
+            if (access[i] < 0) // from access space
+            {
+                double dist, min = 10000;
+                for (j = 0; j < spaces.size(); j++)
+                {
+                    dist = getAccessDistance(room[i].rect, spaces[j]);
+                    if (dist < min) min = dist;
+                    if (min < 0.01) break;
+                }
+                penalty += min;
+            }
+            else // from another room
+                penalty += getAccessDistance(room[i].rect, room[access[i]].rect);
 
-            double l = r1.x1 - r2.x2, r = r1.x2 - r2.x1,
-                   u = r1.y1 - r2.y2, d = r1.y2 - r2.y1;
-
-            double minX = min(fabs(l), fabs(r)),
-                   minY = min(fabs(u), fabs(d));
-
-            double xalign = getAlign(r1.x1, r1.x2, r2.x1, r2.x2),
-                   yalign = getAlign(r1.y1, r1.y2, r2.y1, r2.y2);
-
-            return accessCoeff * min(minX + yalign, minY + xalign);
-        }
-
-        return 0;
+        return accessCoeff * penalty;
     }
 
     double getSpacePenalty()
     {
-        double penalty = 0, sum;
+        if (spaces.size() == 0) return 0;
+        double penalty = 0;
+
+        // Area
 
 //        vector<double> areas;
 //        for (int i = 0; i < spaces.size(); i++)
@@ -379,44 +416,30 @@ public:
 //        for (int i = 0; i < int(spaces.size()/3); i++)
 //            penalty += sqrt(areas[i]);
 
-
 //        // minimize number of rectangles and maximaize area of all spaces
 //        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
 
-//        for (int i = 0; i < areas.size(); i++)
-//            sum += pow(areas[i], 2);
-//        penalty -= sqrt(sqrt(sum));
 
+        // maximize access spaces area
+        penalty -= 2 * sqrt(spaces[0].getArea());
 
-        // find biggest space
-        int biggest = -1; double max = 0;
-        for (int i = 0; i < spaces.size(); i++)
-            if (spaces[i].getArea() > max)
-                { max = spaces[i].getArea(); biggest = i; }
-
-        if (biggest >= 0)
+        double intersection, area, sum;
+        for (int i = 1; i < spaces.size(); i++)
         {
-            double intersection, area;
-
-            // maximize access spaces area
-            penalty -= 2 * sqrt(spaces[biggest].getArea());
-
-            for (int i = 0; i < spaces.size(); i++)
-            if (i != biggest)
-            {
-                intersection = spaces[biggest].getIntersectionArea(spaces[i]);
-                area = spaces[i].getArea() - intersection;
-                if (intersection > 0 && area > 0)
-                    sum += pow(area, 2);
-            }
-            penalty -= sqrt(sqrt(sum));
-
-
-            // minimize biggest space distance from light sources
-            double* d = getSideDistances(spaces[biggest]);
-            for (int i = 0; i < 4; i++)
-                penalty += d[i] * light[i];
+            intersection = spaces[0].getIntersectionArea(spaces[i]);
+            area = spaces[i].getArea() - intersection;
+            if (intersection > 0 && area > 0)
+                sum += area;
         }
+        penalty -= areaToDistance(sum);
+
+
+        // Light
+
+        // minimize biggest space distance from light sources
+        double* d = getSideDistances(spaces[0]);
+        for (int i = 0; i < 4; i++)
+            penalty += d[i] * light[i];
 
         return spaceCoeff * penalty;
     }
@@ -435,23 +458,21 @@ double real_value(GENOME genome)
     for (int j, i = 0; i < house->rooms; i++)
      {
          penalty += house->getAreaPenalty(i);
-         penalty += house->getProportionPenalty(i);
          penalty += house->getBoundaryPenalty(i);
-         penalty += house->getLightPenalty(i);
          penalty += house->getSidePenalty(i);
+         penalty += house->getLightPenalty(i);
 
          for (j = i+1; j < house->rooms; j++)
-         {
              penalty += house->getIntersectionPenalty(i, j);
-             penalty += house->getAccessPenalty(i, j);
-         }
      }
 
-    if (penalty < 40)
-    {
-        house->updateSpaces();
-        penalty += house->getSpacePenalty();
-    }
+    if (penalty > 40)
+        return penalty;
+
+    house->updateSpaces();
+
+    penalty += house->getSpacePenalty();
+    penalty += house->getAccessPenalty();
 
     return penalty;
 }

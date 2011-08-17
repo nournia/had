@@ -178,16 +178,13 @@ void MainWindow::displayEvaluations()
     for (int j, i = 0; i < house->room.size(); i++)
     {
          areaPenalty += house->getAreaPenalty(i);
-         proportionPenalty += house->getProportionPenalty(i);
+//         proportionPenalty += house->getProportionPenalty(i);
          boundaryPenalty += house->getBoundaryPenalty(i);
          lightPenalty += house->getLightPenalty(i);
          sidePenalty += house->getSidePenalty(i);
 
          for (j = i+1; j < house->room.size(); j++)
-         {
              intersectionPenalty += house->getIntersectionPenalty(i, j);
-             accessPenalty += house->getAccessPenalty(i, j);
-         }
     }
 
     vector<Rect>& spaces = house->spaces;
@@ -197,6 +194,7 @@ void MainWindow::displayEvaluations()
     ui->viewer->update();
 
     spacePenalty = house->getSpacePenalty();
+    accessPenalty = house->getAccessPenalty();
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
