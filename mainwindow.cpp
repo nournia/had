@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QDesktopWidget>
 
 #include <evaluate.h>
 
@@ -16,6 +17,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     thread = new GAThread("");
     connect(thread, SIGNAL(finished()), this, SLOT(on_bExecute_clicked()));
+
+    resize(800, 600);
+    this->move(QApplication::desktop()->screen()->rect().center()-this->rect().center());
 }
 
 MainWindow::~MainWindow()
@@ -180,7 +184,6 @@ void MainWindow::displayEvaluations()
          areaPenalty += house->getAreaPenalty(i);
 //         proportionPenalty += house->getProportionPenalty(i);
          boundaryPenalty += house->getBoundaryPenalty(i);
-         lightPenalty += house->getLightPenalty(i);
          sidePenalty += house->getSidePenalty(i);
 
          for (j = i+1; j < house->room.size(); j++)
@@ -195,6 +198,7 @@ void MainWindow::displayEvaluations()
 
     spacePenalty = house->getSpacePenalty();
     accessPenalty = house->getAccessPenalty();
+    lightPenalty += house->getLightPenalty();
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));

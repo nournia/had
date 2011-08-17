@@ -154,7 +154,7 @@ public:
             if (room[i].sizeLimit.width)
                 emptySpace -= (room[i].sizeLimit.height + wall) * (room[i].sizeLimit.width + wall);
 
-        const double all = 3*4 + 2*1 + 12;
+        const double all = 3*4 + 2*1 + 15;
         room[0].areaLimit = emptySpace * 4/all;
         room[1].areaLimit = emptySpace * 4/all;
         room[2].areaLimit = emptySpace * 4/all;
@@ -287,7 +287,7 @@ public:
 
     inline double* getSideDistances(const Rect& room)
     {
-        double* d = new double[4];
+        double* d = new double[4]; // 0: up, 1: right, 2: down, 3: left
         d[0] = room.y1 - space.y1; d[1] = space.x2 - room.x2; d[2] = space.y2 - room.y2; d[3] = room.x1 - space.x1;
         return d;
     }
@@ -349,23 +349,6 @@ public:
         return sideCoeff * minD;
     }
 
-    double getLightPenalty(int index)
-    {
-        if (! room[index].lightLimit)
-            return 0;
-
-        double* d = getSideDistances(room[index].rect);
-        double minD = 100000, mini = -1;
-        for (int i = 0; i < 4; i++)
-            if (room[index].lightLimit <= light[i] && d[i] < minD)
-            {
-                minD = d[i];
-                mini = i;
-            }
-
-        return lightCoeff * (mini >= 0 && minD > 0 ? minD : 0);
-    }
-
     double getIntersectionPenalty(int first, int second)
     {
         const Rect &r1 = room[first].rect, &r2 = room[second].rect;
@@ -377,6 +360,31 @@ public:
                minY = min(fabs(u), fabs(d)) * (u*d < 0 ? -1 : 1);
 
         return intersectionCoeff * (minX < 0 && minY < 0 ? min(fabs(minX), fabs(minY)) : 0);
+    }
+
+    double getLightProfit(Rect& rect, int lightLimit)
+    {
+        const double lightDistanceLimit = 0.5, profit = -1;
+
+        double sum = 0;
+        double* dists = getSideDistances(rect);
+        for (int i = 0; i < 4; i++)
+            if (light[i] &&  dists[i] < lightDistanceLimit)
+                sum += lightLimit * light[i] * profit;
+
+        return sum;
+    }
+    double getLightPenalty()
+    {
+        double penalty = 0;
+
+        for (int j, i = 0; i < rooms; i++)
+        if (room[i].lightLimit)
+            penalty += getLightProfit(room[i].rect, 1);
+
+        penalty += getLightProfit(spaces[0], 2);
+
+        return lightCoeff * penalty;
     }
 
     double getAccessPenalty()
@@ -402,10 +410,7 @@ public:
 
     double getSpacePenalty()
     {
-        if (spaces.size() == 0) return 0;
         double penalty = 0;
-
-        // Area
 
 //        vector<double> areas;
 //        for (int i = 0; i < spaces.size(); i++)
@@ -416,8 +421,8 @@ public:
 //        for (int i = 0; i < int(spaces.size()/3); i++)
 //            penalty += sqrt(areas[i]);
 
-//        // minimize number of rectangles and maximaize area of all spaces
-//        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
+        // minimize number of rectangles and maximaize area of all spaces
+        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
 
 
         // maximize access spaces area
@@ -432,14 +437,6 @@ public:
                 sum += area;
         }
         penalty -= areaToDistance(sum);
-
-
-        // Light
-
-        // minimize biggest space distance from light sources
-        double* d = getSideDistances(spaces[0]);
-        for (int i = 0; i < 4; i++)
-            penalty += d[i] * light[i];
 
         return spaceCoeff * penalty;
     }
@@ -460,19 +457,20 @@ double real_value(GENOME genome)
          penalty += house->getAreaPenalty(i);
          penalty += house->getBoundaryPenalty(i);
          penalty += house->getSidePenalty(i);
-         penalty += house->getLightPenalty(i);
 
          for (j = i+1; j < house->rooms; j++)
              penalty += house->getIntersectionPenalty(i, j);
      }
 
-    if (penalty > 40)
-        return penalty;
+    if (penalty > 40) return penalty;
 
     house->updateSpaces();
-
-    penalty += house->getSpacePenalty();
-    penalty += house->getAccessPenalty();
+    if (house->spaces.size() > 0)
+    {
+        penalty += house->getSpacePenalty();
+        penalty += house->getAccessPenalty();
+        penalty += house->getLightPenalty();
+    }
 
     return penalty;
 }

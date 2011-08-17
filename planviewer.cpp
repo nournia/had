@@ -72,7 +72,7 @@ void PlanViewer::mousePressEvent(QMouseEvent *event)
     {
         QRect room(r * (genome[4*i] + out_wall), r * (genome[4*i+1] + out_wall), r * (genome[4*i+2] - wall), r * (genome[4*i+3] - wall));
 
-        if (event->pos().x() > room.x() && event->pos().y() > room.y() && event->pos().x() < room.x() + room.width() && event->pos().y() < room.y() + room.height())
+        if (event->pos().x() >= room.x() && event->pos().y() >= room.y() && event->pos().x() <= room.x() + room.width() && event->pos().y() <= room.y() + room.height())
         {
             if (event->pos().x() >= room.x() + room.width() - resizeButtonWidth && event->pos().y() >= room.y() + room.height() - resizeButtonWidth)
                 resize = i;
