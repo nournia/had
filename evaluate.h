@@ -239,6 +239,8 @@ public:
 
         // find access spaces
         spaces.clear();
+        if (tmps.size() == 0) return;
+
         spaces.push_back(tmps[biggest]);
         for (int i = 0; i < tmps.size(); i++)
         if (i != biggest)

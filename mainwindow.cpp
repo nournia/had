@@ -197,9 +197,12 @@ void MainWindow::displayEvaluations()
         ui->viewer->spaces.push_back(QRectF(spaces[i].x1, spaces[i].y1, spaces[i].x2 - spaces[i].x1, spaces[i].y2 - spaces[i].y1));
     ui->viewer->update();
 
-    spacePenalty = house->getSpacePenalty();
-    accessPenalty = house->getAccessPenalty();
-    lightPenalty += house->getLightPenalty();
+    if (house->spaces.size() > 0)
+    {
+        spacePenalty = house->getSpacePenalty();
+        accessPenalty = house->getAccessPenalty();
+        lightPenalty += house->getLightPenalty();
+    }
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
     ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
