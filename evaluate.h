@@ -9,7 +9,7 @@ using namespace std;
 
 typedef const std::vector<double>& GENOME;
 
-const double areaCoeff = 2.5, intersectionCoeff = 3, boundaryCoeff = 3, accessCoeff = 2, lightCoeff = 1, spaceCoeff = 0.75, sideCoeff = 0;
+const double areaCoeff = 2.5, intersectionCoeff = 3, boundaryCoeff = 3, accessCoeff = 2, lightCoeff = 0.25, spaceCoeff = 0.75, sideCoeff = 0.25;
 
 
 // Geometry
@@ -187,9 +187,18 @@ public:
     void updateSpaces()
     {
         // points
-        vector<Point> points;
-        for (int i = 0; i < rooms; i++)
-            addRectanglePoints(points, room[i].rect);
+        static vector<Point> points;
+
+//        for (int i = 0; i < rooms; i++)
+//            addRectanglePoints(points, room[i].rect);
+
+        if (points.size() == 0)
+        {
+            const int webSize = 12;
+            for (int j, i = 0; i < webSize; i++)
+                for (j = 0; j < webSize; j++)
+                    points.push_back(Point(space.getWidth()/(webSize+1) * (i+1), space.getHeight()/(webSize+1) * (j+1)));
+        }
 
         // spaces
         vector<Rect> tmps;
@@ -288,7 +297,7 @@ public:
     inline double* getSideDistances(const Rect& room)
     {
         double* d = new double[4]; // 0: up, 1: right, 2: down, 3: left
-        d[0] = room.y1 - space.y1; d[1] = space.x2 - room.x2; d[2] = space.y2 - room.y2; d[3] = room.x1 - space.x1;
+        d[0] = fabs(room.y1 - space.y1); d[1] = fabs(space.x2 - room.x2); d[2] = fabs(space.y2 - room.y2); d[3] = fabs(room.x1 - space.x1);
         return d;
     }
 
@@ -341,12 +350,8 @@ public:
 
     double getSidePenalty(int index)
     {
-        double* d = getSideDistances(room[index].rect);
-        double minD = 1000;
-        for (int i = 0; i < 4; i++)
-            if (fabs(d[i]) < minD)
-                minD = fabs(d[i]);
-        return sideCoeff * minD;
+        double* dists = getSideDistances(room[index].rect);
+        return sideCoeff * (min(dists[0], dists[2]) + min(dists[1], dists[3]));
     }
 
     double getIntersectionPenalty(int first, int second)
@@ -370,7 +375,7 @@ public:
         double* dists = getSideDistances(rect);
         for (int i = 0; i < 4; i++)
             if (light[i] &&  dists[i] < lightDistanceLimit)
-                sum += lightLimit * light[i] * profit;
+                sum -= lightLimit * light[i] * (!(i%2) ? rect.getWidth() : rect.getHeight());
 
         return sum;
     }
@@ -421,8 +426,8 @@ public:
 //        for (int i = 0; i < int(spaces.size()/3); i++)
 //            penalty += sqrt(areas[i]);
 
-        // minimize number of rectangles and maximaize area of all spaces
-        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
+//        // minimize number of rectangles and maximaize area of all spaces
+//        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
 
 
         // maximize access spaces area
