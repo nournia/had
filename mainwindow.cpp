@@ -85,8 +85,8 @@ void MainWindow::on_bExecute_clicked()
 //    # --status=t-eoESAll.status                # Status file
 
 //    ######    Stopping criterion      ######
-    command += " --maxGen=2000";
-    command += " --steadyGen=2000";
+    command += " --maxGen=1000";
+    command += " --steadyGen=1000";
 //    # --minGen=0                               # -g : Minimum number of generations
 //    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
 //    command += " --targetFitness=0";
@@ -190,6 +190,7 @@ void MainWindow::displayEvaluations()
              intersectionPenalty += house->getIntersectionPenalty(i, j);
     }
 
+    house->updateSpaces();
     vector<Rect>& spaces = house->spaces;
     ui->viewer->spaces.clear();
     for (int i = 0; i < spaces.size(); i++)
@@ -222,7 +223,7 @@ void MainWindow::on_bPrevious_clicked()
 
 void MainWindow::on_sGenerations_sliderMoved(int position)
 {
-    loadGeneration(ui->sGenerations->value());
+    loadGeneration(position);
 }
 
 void MainWindow::on_bLoad_clicked()
