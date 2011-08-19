@@ -268,13 +268,13 @@
          <property name="minimumSize">
           <size>
            <width>100</width>
-           <height>120</height>
+           <height>150</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>100</width>
-           <height>120</height>
+           <height>150</height>
           </size>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -296,6 +296,13 @@
            <widget class="QPushButton" name="bSample">
             <property name="text">
              <string>Sample</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="bSaveImage">
+            <property name="text">
+             <string>Save Image</string>
             </property>
            </widget>
           </item>

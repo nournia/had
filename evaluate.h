@@ -125,6 +125,7 @@ public:
     size_t rooms;
     vector<Room> room;
     Rect space;
+    double original_width, original_height;
     double out_wall, wall;
     int* access;
     int light[4]; // clockwise // 0: up, 1: right, 2: down, 3: left
@@ -133,9 +134,12 @@ public:
 
     House()
     {
+        original_width = 10.6;
+        original_height = 10.05;
+
         // Space
         wall = 0.15; out_wall = 0.3;
-        space.x1 = 0; space.y1 = 0; space.x2 = 10.6; space.y2 = 10.05;
+        space.x1 = 0; space.y1 = 0; space.x2 = original_width; space.y2 = original_height;
         space.x2 -= 2*out_wall - wall; space.y2 -= 2*out_wall - wall;
         light[0] = 2; light[1] = 1; light[2] = 0; light[3] = 0;
 
@@ -194,7 +198,7 @@ public:
 
         if (points.size() == 0)
         {
-            const int webSize = 12;
+            const int webSize = 15;
             for (int j, i = 0; i < webSize; i++)
                 for (j = 0; j < webSize; j++)
                     points.push_back(Point(space.getWidth()/(webSize+1) * (i+1), space.getHeight()/(webSize+1) * (j+1)));

@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QDesktopWidget>
+#include <QDateTime>
 
 #include <evaluate.h>
 
@@ -85,8 +86,8 @@ void MainWindow::on_bExecute_clicked()
 //    # --status=t-eoESAll.status                # Status file
 
 //    ######    Stopping criterion      ######
-    command += " --maxGen=1000";
-    command += " --steadyGen=1000";
+    command += " --maxGen=500";
+    command += " --steadyGen=500";
 //    # --minGen=0                               # -g : Minimum number of generations
 //    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
 //    command += " --targetFitness=0";
@@ -254,4 +255,28 @@ void MainWindow::on_bSample_clicked()
 {
     // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
     loadPopulation(-1, "x x 28 " "2.9 0 4.35 2.7 " "7.25 0 2.9 3.85 " "7.25 5.35 2.9 4.25 " "7.25 3.85 2.9 1.5 " "0 6.85 2 2.75 " "0 0 2.9 4.35 " "0 4.35 2 1.35");
+}
+
+void MainWindow::on_sSeed_editingFinished()
+{
+    ui->bExecute->click();
+}
+
+void MainWindow::on_bSaveImage_clicked()
+{
+    House* house = House::house;
+    if (! house) return;
+
+    QSize size(800, 600);
+
+    double r = min(size.width() / house->original_width, size.height() / house->original_width);
+    size.setWidth(round(r * house->original_width));
+    size.setHeight(round(r * house->original_height));
+
+    QImage* img = new QImage(size, QImage::Format_RGB32);
+    ui->viewer->paintOn(img, false, size);
+
+    QDir current;
+    current.mkdir("img");
+    img->save("img/" + QDateTime::currentDateTime().toString(), "jpg", 100);
 }

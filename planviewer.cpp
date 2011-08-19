@@ -4,6 +4,8 @@
 #include <QColor>
 #include <QDebug>
 
+#include <math.h>
+
 PlanViewer::PlanViewer(QWidget *parent) :
     QWidget(parent), resizeButtonWidth(5)
 {
@@ -22,47 +24,57 @@ double r;
 
 void PlanViewer::paintEvent(QPaintEvent * event)
 {
+    paintOn(this, true, size());
+}
+
+void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
+{
     if (genome.size() <= 0)
         return;
-
-    int page_width = width() - 2, page_height = height() - 2;
 
     QStringList rooms = QStringList() << "kitchen" << "bedroom1" << "bedroom2" << "bathroom" << "toilet" << "stairs" << "elevator";
 
     space_width = 10.6, space_height = 10.05, wall = 0.15, out_wall = 0.3;
-    r = min(page_width / space_width, page_height / space_height);
+    r = min(page.width() / space_width, page.height() / space_height);
 
-
-    QPainter painter(this);
+    QPainter painter(device);
+    painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(QColor(255, 255, 255)));
-//    painter.setBrush(QBrush(QColor("white")));
-    painter.drawRect(QRect(0, 0, r * space_width, r * space_height));
+    painter.drawRect(QRect(0, 0, round(r * space_width), round(r * space_height)));
 
     for (int i = 0; i < rooms.count(); i++)
     {
-        QRect room(r * (genome[4*i] + out_wall), r * (genome[4*i+1] + out_wall), r * (genome[4*i+2] - wall), r * (genome[4*i+3] - wall));
+        QRect room(round(r * (genome[4*i] + out_wall)), round(r * (genome[4*i+1] + out_wall)), round(r * (genome[4*i+2] - wall)), round(r * (genome[4*i+3] - wall)));
 
-        painter.setPen(Qt::SolidPattern);
+        painter.setPen(Qt::SolidLine);
         painter.drawText(room, Qt::AlignCenter, rooms[i]);
 
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(QBrush(QColor(0, 0, 255, 20)));
+        painter.setPen(QColor(50, 50, 50, 120));
+        painter.setBrush(QBrush(QColor(0, 0, 255, 30)));
         painter.drawRect(room);
 
         // resize button
-        painter.setBrush(QBrush(QColor(0, 255, 0, 100)));
-        double x1 = room.bottomRight().x() - resizeButtonWidth, y1 = room.bottomRight().y() - resizeButtonWidth;
-        painter.drawRect(x1, y1, resizeButtonWidth, resizeButtonWidth);
+        if (development)
+        {
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(QBrush(QColor(0, 255, 0, 100)));
+            double x1 = room.bottomRight().x() - resizeButtonWidth, y1 = room.bottomRight().y() - resizeButtonWidth;
+            painter.drawRect(x1, y1, resizeButtonWidth, resizeButtonWidth);
+        }
     }
 
 
     // Spaces
-    painter.setPen(QColor(50, 50, 50, 120));
-    painter.setBrush(QBrush(QColor("blue"), Qt::BDiagPattern));
-    for (int i = 0; i < spaces.size(); i++)
+    if (development)
     {
-        QRect space(r * (spaces[i].left() + out_wall), r * (spaces[i].top() + out_wall), r * (spaces[i].width() - wall), r * (spaces[i].height() - wall));
-        painter.drawRect(space);
+        painter.setBrush(QBrush(QColor(50, 50, 50, 20)));
+        painter.setPen(QColor(50, 50, 50, 120));
+
+        for (int i = 0; i < spaces.size(); i++)
+        {
+            QRect space(r * (spaces[i].left() + out_wall), r * (spaces[i].top() + out_wall), r * (spaces[i].width() - wall), r * (spaces[i].height() - wall));
+            painter.drawRect(space);
+        }
     }
 }
 

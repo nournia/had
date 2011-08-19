@@ -60,6 +60,10 @@ private slots:
 
     void on_bSample_clicked();
 
+    void on_sSeed_editingFinished();
+
+    void on_bSaveImage_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

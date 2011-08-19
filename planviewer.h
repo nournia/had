@@ -23,9 +23,13 @@ public:
 private:
     const int resizeButtonWidth;
     int drag, resize;
+
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+
+public:
+    void paintOn(QPaintDevice * device, bool development, QSize page);
 
 signals:
     void genomeChanged();
