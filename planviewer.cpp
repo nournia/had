@@ -7,10 +7,9 @@
 #include <math.h>
 
 PlanViewer::PlanViewer(QWidget *parent) :
-    QWidget(parent), resizeButtonWidth(5)
+    QWidget(parent), resizeWidth(6)
 {
-    drag = -1;
-    resize = -1;
+    mouseReleaseEvent(0);
 }
 
 void PlanViewer::setGenome(vector<double> g)
@@ -53,14 +52,14 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
         painter.setBrush(QBrush(QColor(0, 0, 255, 30)));
         painter.drawRect(room);
 
-        // resize button
-        if (development)
-        {
-            painter.setPen(Qt::NoPen);
-            painter.setBrush(QBrush(QColor(0, 255, 0, 100)));
-            double x1 = room.bottomRight().x() - resizeButtonWidth, y1 = room.bottomRight().y() - resizeButtonWidth;
-            painter.drawRect(x1, y1, resizeButtonWidth, resizeButtonWidth);
-        }
+//        // resize button
+//        if (development)
+//        {
+//            painter.setPen(Qt::NoPen);
+//            painter.setBrush(QBrush(QColor(0, 255, 0, 100)));
+//            double x1 = room.bottomRight().x() - resizeButtonWidth, y1 = room.bottomRight().y() - resizeButtonWidth;
+//            painter.drawRect(x1, y1, resizeButtonWidth, resizeButtonWidth);
+//        }
     }
 
 
@@ -86,13 +85,21 @@ void PlanViewer::mousePressEvent(QMouseEvent *event)
 
     for (int i = 0; i < 7; i++)
     {
-        QRect room(r * (genome[4*i] + out_wall), r * (genome[4*i+1] + out_wall), r * (genome[4*i+2] - wall), r * (genome[4*i+3] - wall));
+        QRect room(round(r * (genome[4*i] + out_wall)), round(r * (genome[4*i+1] + out_wall)), round(r * (genome[4*i+2] - wall)), round(r * (genome[4*i+3] - wall)));
 
         if (event->pos().x() >= room.x() && event->pos().y() >= room.y() && event->pos().x() <= room.x() + room.width() && event->pos().y() <= room.y() + room.height())
         {
-            if (event->pos().x() >= room.x() + room.width() - resizeButtonWidth && event->pos().y() >= room.y() + room.height() - resizeButtonWidth)
-                resize = i;
-            else
+            if (event->pos().x() >= room.x() + room.width() - resizeWidth)
+                resize_x2 = i;
+            else if (event->pos().x() <= room.x() + resizeWidth)
+                resize_x1 = i;
+
+            if (event->pos().y() >= room.y() + room.height() - resizeWidth)
+                resize_y2 = i;
+            else if (event->pos().y() <= room.y() + resizeWidth)
+                resize_y1 = i;
+
+            if (resize_x1 == -1 && resize_y1 == -1 && resize_x2 == -1 && resize_y2 == -1)
                 drag = i;
 
             break;
@@ -104,20 +111,42 @@ void PlanViewer::mousePressEvent(QMouseEvent *event)
 
 void PlanViewer::mouseMoveEvent(QMouseEvent *event)
 {
+    bool change = false;
+    double xdiff = (event->pos().x() - lastPos.x())/r, ydiff = (event->pos().y() - lastPos.y())/r;
+
     if (drag >= 0)
     {
-        genome[4*drag] += (event->pos().x() - lastPos.x())/r;
-        genome[4*drag+1] += (event->pos().y() - lastPos.y())/r;
-
-        update();
-        emit genomeChanged();
+        genome[4*drag] += xdiff;
+        genome[4*drag+1] += ydiff;
+        change = true;
     }
 
-    if (resize >= 0)
+    if (resize_x1 >= 0)
     {
-        genome[4*resize+2] += (event->pos().x() - lastPos.x())/r;
-        genome[4*resize+3] += (event->pos().y() - lastPos.y())/r;
+        genome[4*resize_x1] += xdiff;
+        genome[4*resize_x1+2] -= xdiff;
+        change = true;
+    }
+    else if (resize_x2 >= 0)
+    {
+        genome[4*resize_x2+2] += xdiff;
+        change = true;
+    }
 
+    if (resize_y1 >= 0)
+    {
+        genome[4*resize_y1+1] += ydiff;
+        genome[4*resize_y1+3] -= ydiff;
+        change = true;
+    }
+    else if (resize_y2 >= 0)
+    {
+        genome[4*resize_y2+3] += ydiff;
+        change = true;
+    }
+
+    if (change)
+    {
         update();
         emit genomeChanged();
     }
@@ -128,5 +157,8 @@ void PlanViewer::mouseMoveEvent(QMouseEvent *event)
 void PlanViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     drag = -1;
-    resize = -1;
+    resize_x1 = -1;
+    resize_y1 = -1;
+    resize_x2 = -1;
+    resize_y2 = -1;
 }

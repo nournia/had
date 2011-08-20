@@ -278,5 +278,5 @@ void MainWindow::on_bSaveImage_clicked()
 
     QDir current;
     current.mkdir("img");
-    img->save("img/" + QDateTime::currentDateTime().toString(), "jpg", 100);
+    img->save("img/" + QDateTime::currentDateTime().toString() + ".jpg", "jpg", 100);
 }
