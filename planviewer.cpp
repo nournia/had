@@ -7,7 +7,7 @@
 #include <math.h>
 
 PlanViewer::PlanViewer(QWidget *parent) :
-    QWidget(parent), resizeWidth(6)
+    QWidget(parent), resizeWidth(5)
 {
     mouseReleaseEvent(0);
 }
@@ -66,11 +66,15 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
     // Spaces
     if (development)
     {
-        painter.setBrush(QBrush(QColor(50, 50, 50, 20)));
         painter.setPen(QColor(50, 50, 50, 120));
 
         for (int i = 0; i < spaces.size(); i++)
         {
+            if (i == 0)
+                painter.setBrush(QBrush(QColor(255, 255, 0, 20)));
+            else
+                painter.setBrush(QBrush(QColor(50, 50, 50, 20)));
+
             QRect space(r * (spaces[i].left() + out_wall), r * (spaces[i].top() + out_wall), r * (spaces[i].width() - wall), r * (spaces[i].height() - wall));
             painter.drawRect(space);
         }

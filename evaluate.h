@@ -9,7 +9,7 @@ using namespace std;
 
 typedef const std::vector<double>& GENOME;
 
-const double areaCoeff = 2.5, intersectionCoeff = 3, boundaryCoeff = 3, accessCoeff = 2, lightCoeff = 0.25, spaceCoeff = 0.75, sideCoeff = 0.25;
+const double areaCoeff = 2.8, intersectionCoeff = 3, boundaryCoeff = 3, accessCoeff = 2, lightCoeff = 0.25, spaceCoeff = 0.75, sideCoeff = 0.25;
 
 
 // Geometry
@@ -82,7 +82,7 @@ inline double areaToDistance(double area)
 inline bool findRect(vector<Rect>& rects, Rect& rect)
 {
     for (int i = 0; i < rects.size(); i++)
-        if (rects[i].x1 == rect.x1 && rects[i].x2 == rect.x2 && rects[i].y1 == rect.y1 && rects[i].y2 == rect.y2)
+        if (fabs(rect.getIntersectionArea(rects[i]) - rect.getArea()) < 1)
             return true;
     return false;
 }
@@ -198,7 +198,7 @@ public:
 
         if (points.size() == 0)
         {
-            const int webSize = 15;
+            const int webSize = 12;
             for (int j, i = 0; i < webSize; i++)
                 for (j = 0; j < webSize; j++)
                     points.push_back(Point(space.getWidth()/(webSize+1) * (i+1), space.getHeight()/(webSize+1) * (j+1)));
@@ -231,23 +231,28 @@ public:
             }
 
             Rect r(cright, cdown, cleft, cup);
-            if (isEmptyRect(r) && r.getWidth() > minSpaceLength &&  r.getHeight() > minSpaceLength &&  ! findRect(tmps, r))
+            emptyRect(r);
+
+            if (r.getWidth() > minSpaceLength &&  r.getHeight() > minSpaceLength && ! findRect(tmps, r))
                 tmps.push_back(r);
         }
 
         // find biggest space
-        int biggest = -1; double max = 0;
+        int fittest = -1; double side, max = 0;
         for (int i = 0; i < tmps.size(); i++)
-            if (tmps[i].getArea() > max)
-                { max = tmps[i].getArea(); biggest = i; }
+        {
+            side = min(tmps[i].getWidth(), tmps[i].getHeight());
+            if (side > max)
+                { max = side; fittest = i; }
+        }
 
         // find access spaces
         spaces.clear();
         if (tmps.size() == 0) return;
 
-        spaces.push_back(tmps[biggest]);
+        spaces.push_back(tmps[fittest]);
         for (int i = 0; i < tmps.size(); i++)
-        if (i != biggest)
+        if (i != fittest)
             if (spaces[0].getIntersectionArea(tmps[i]) > 0)
                 spaces.push_back(tmps[i]);
     }
@@ -272,6 +277,21 @@ public:
             if (r.getIntersectionArea(room[i].rect) > 0)
                 return false;
         return true;
+    }
+
+    inline void emptyRect(Rect& r)
+    {
+        Rect r1, r2;
+        for (int i = 0; i < rooms; i++)
+            if (r.getIntersectionArea(room[i].rect) > 0)
+            {
+                r1 = r; r2 = r;
+                Rect& rm = room[i].rect;
+                if (r.x1 < rm.x1) r1.x2 = rm.x1; else r1.x1 = rm.x2;
+                if (r.y1 < rm.y1) r2.y2 = rm.y1; else r2.y1 = rm.y2;
+
+                r = r1.getArea() > r2.getArea() ? r1 : r2;
+            }
     }
 
     inline double getAlign(double r11, double r12, double r21, double r22)
@@ -318,7 +338,7 @@ public:
             double w1 = room[index].rect.getWidth() - wall, h1 = room[index].rect.getHeight() - wall,
                    w2 = room[index].sizeLimit.width, h2 = room[index].sizeLimit.height;
 
-            penalty += min(fabs(w2 - w1) + fabs(h2 - h1), fabs(w2 - h1) + fabs(h2 - w1));
+            penalty += pow(2, min(fabs(w2 - w1) + fabs(h2 - h1), fabs(w2 - h1) + fabs(h2 - w1)));
 
         } else
         {
@@ -432,8 +452,8 @@ public:
 //        for (int i = 0; i < int(spaces.size()/3); i++)
 //            penalty += sqrt(areas[i]);
 
-//        // minimize number of rectangles and maximaize area of all spaces
-//        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
+        // minimize number of rectangles and maximaize area of all spaces
+        penalty += spaces.size() > 1 ? (spaces.size() - 1) * 1 : 0;
 
 
         // maximize access spaces area

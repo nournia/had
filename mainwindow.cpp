@@ -108,10 +108,12 @@ void MainWindow::on_bExecute_clicked()
         thread->command = command;
         thread->start();
         ui->bExecute->setText("Stop");
+        ui->bExecute->setEnabled(false);
     } else
     {
         thread->quit();
         ui->bExecute->setText("Execute");
+        ui->bExecute->setEnabled(true);
         on_bLoad_clicked();
     }
 
