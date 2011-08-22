@@ -181,17 +181,11 @@ void MainWindow::displayEvaluations()
 
     House* house = House::house;
 
-    double areaPenalty = 0, proportionPenalty = 0, boundaryPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, spacePenalty = 0, sidePenalty = 0;
-    for (int j, i = 0; i < house->room.size(); i++)
-    {
-         areaPenalty += house->getAreaPenalty(i);
-//         proportionPenalty += house->getProportionPenalty(i);
-         boundaryPenalty += house->getBoundaryPenalty(i);
-         sidePenalty += house->getSidePenalty(i);
+    double areaPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, spacePenalty = 0, sidePenalty = 0;
+    areaPenalty = house->getAreaPenalty();
+    sidePenalty = house->getSidePenalty();
 
-         for (j = i+1; j < house->room.size(); j++)
-             intersectionPenalty += house->getIntersectionPenalty(i, j);
-    }
+    intersectionPenalty = house->getIntersectionPenalty();
 
     house->updateSpaces();
     vector<Rect>& spaces = house->spaces;
@@ -202,14 +196,14 @@ void MainWindow::displayEvaluations()
 
     if (house->spaces.size() > 0)
     {
-        spacePenalty = house->getSpacePenalty();
+        spacePenalty = -1 * house->getSpaceProfit();
+        lightPenalty = -1 *house->getLightProfit();
         accessPenalty = house->getAccessPenalty();
-        lightPenalty += house->getLightPenalty();
     }
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
-    ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
-    ui->lBoundaryPenalty->setText(QString("%1").arg(present(boundaryPenalty)));
+//    ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
+//    ui->lBoundaryPenalty->setText(QString("%1").arg(present(boundaryPenalty)));
     ui->lIntersectionPenalty->setText(QString("%1").arg(present(intersectionPenalty)));
     ui->lSidePenalty->setText(QString("%1").arg(present(sidePenalty)));
     ui->lAccessPenalty->setText(QString("%1").arg(present(accessPenalty)));

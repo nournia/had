@@ -66,14 +66,14 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
     // Spaces
     if (development)
     {
-        painter.setPen(QColor(50, 50, 50, 120));
+        painter.setPen(QColor(50, 50, 50, 80));
 
         for (int i = 0; i < spaces.size(); i++)
         {
             if (i == 0)
-                painter.setBrush(QBrush(QColor(255, 255, 0, 20)));
+                painter.setBrush(QBrush(QColor(255, 255, 0, 40)));
             else
-                painter.setBrush(QBrush(QColor(50, 50, 50, 20)));
+                painter.setBrush(QBrush(QColor(50, 50, 50, 5)));
 
             QRect space(r * (spaces[i].left() + out_wall), r * (spaces[i].top() + out_wall), r * (spaces[i].width() - wall), r * (spaces[i].height() - wall));
             painter.drawRect(space);
