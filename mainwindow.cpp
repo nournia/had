@@ -202,8 +202,6 @@ void MainWindow::displayEvaluations()
     }
 
     ui->lAreaPenalty->setText(QString("%1").arg(present(areaPenalty)));
-//    ui->lProportionPenalty->setText(QString("%1").arg(present(proportionPenalty)));
-//    ui->lBoundaryPenalty->setText(QString("%1").arg(present(boundaryPenalty)));
     ui->lIntersectionPenalty->setText(QString("%1").arg(present(intersectionPenalty)));
     ui->lSidePenalty->setText(QString("%1").arg(present(sidePenalty)));
     ui->lAccessPenalty->setText(QString("%1").arg(present(accessPenalty)));

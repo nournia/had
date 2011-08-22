@@ -9,7 +9,7 @@ using namespace std;
 
 typedef const std::vector<double>& GENOME;
 
-const double areaCoeff = 2.8, intersectionCoeff = 3, accessCoeff = 2, lightCoeff = 0.25, spaceCoeff = 0.75, sideCoeff = 0.25;
+const double areaCoeff = 3, intersectionCoeff = 3, accessCoeff = 1.5, lightCoeff = 0.25, spaceCoeff = 0.75, sideCoeff = 0.25;
 
 
 // Geometry
@@ -329,19 +329,6 @@ public:
 
     // Penalty functions
 
-    double getProportionPenalty(int index)
-    {
-        double ratio = room[index].rect.getWidth() / room[index].rect.getHeight();
-        if (ratio < 0)
-            return 0; // invalid size - no penalty
-
-        if (ratio > 1) ratio = 1 / ratio;
-
-        if (ratio < 1 && ratio > 0.6)
-            return 0; // good ratio
-
-        return pow(2, 1/ratio);
-    }
     double getAreaPenalty()
     {
         double penalty = 0;
@@ -352,12 +339,34 @@ public:
                 double w1 = room[i].rect.getWidth() - wall, h1 = room[i].rect.getHeight() - wall,
                        w2 = room[i].sizeLimit.width, h2 = room[i].sizeLimit.height;
 
-                penalty += pow(2, min(fabs(w2 - w1) + fabs(h2 - h1), fabs(w2 - h1) + fabs(h2 - w1)));
+                double wd, hd;
+                if (fabs(w2 - w1) + fabs(h2 - h1) < fabs(w2 - h1) + fabs(h2 - w1))
+                {
+                    wd = w2 - w1; hd = h2 - h1;
+                } else
+                {
+                    wd = w2 - h1; hd = h2 - w1;
+                }
+
+                penalty += exp((wd > 0 ? wd : 0) + (hd > 0 ? hd : 0));
 
             } else
             {
-                penalty += areaToDistance(room[i].areaLimit - room[i].rect.getArea());
-                penalty += getProportionPenalty(i);
+                const double minRatio = 0.7, iMinRatio = 1.0 / minRatio;
+
+                double w = room[i].rect.getWidth(), h = room[i].rect.getHeight();
+                if (w > h)
+                {
+                    w = room[i].rect.getHeight(); h = room[i].rect.getWidth();
+                }
+
+                if (h > (w * iMinRatio))
+                    h = w * iMinRatio;
+                else
+                    w = h * minRatio;
+
+                double ad = room[i].areaLimit - (w * h);
+                penalty += ad > 0 ? 2 * areaToDistance(ad) : 0;
             }
 
         return areaCoeff * penalty;
