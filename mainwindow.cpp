@@ -14,6 +14,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QFile file("had.param");
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+        ui->eCommand->setPlainText(file.readAll());
+
     connect(ui->viewer, SIGNAL(genomeChanged()), this, SLOT(displayEvaluations()));
 
     thread = new GAThread("");
@@ -42,66 +46,8 @@ struct FilenameLessThan {
 
 void MainWindow::on_bExecute_clicked()
 {
-    QString command = "/home/alireza/repo/EO-1.2.0/eo/release/tutorial/Lesson4/had";
-
+    QString command = ui->eCommand->toPlainText().replace("\n", " ");
     command += " --seed=" + ui->sSeed->text();
-
-//    ######    ES mutation             ######
-//    command += " --Isotropic=0";
-//    # --Stdev=0                                # -s : One self-adaptive stDev per variable
-//    # --Correl=0                               # -c : Use correlated mutations
-
-//    ######    Evolution Engine        ######
-    command += " --popSize=20";
-    command += " --selection=Sequential";
-    command += " --nbOffspring=700%";
-    command += " --replacement=Comma";
-    command += " --weakElitism=0";
-
-//    ######    Genotype Initialization    ######
-    command += " --vecSize=28";
-    command += " --initBounds=28[0,6]";
-    command += " --sigmaInit=0.8%";
-
-//    ######    Output                  ######
-//    # --useEval=1                              # Use nb of eval. as counter (vs nb of gen.)
-//    # --useTime=1                              # Display time (s) every generation
-    command += " --printBestStat=0";
-//    # --printPop=0                             # Print sorted pop. every gen.
-
-//    ######    Output - Disk           ######
-    command += " --resDir=/home/alireza/repo/had/input";
-    command += " --eraseDir=1";
-//    # --fileBestStat=1                         # Output bes/avg/std to file
-
-//    ######    Output - Graphical      ######
-//    # --plotBestStat=0                         # Plot Best/avg Stat
-//    # --plotHisto=0                            # Plot histogram of fitnesses
-
-//    ######    Persistence             ######
-//    # --Load=                                  # -L : A save file to restart from
-//    # --recomputeFitness=0                     # -r : Recompute the fitness after re-loading the pop.?
-    command += " --saveFrequency=50";
-//    # --saveTimeInterval=0                     # Save every T seconds (0 or absent = never)
-//    # --status=t-eoESAll.status                # Status file
-
-//    ######    Stopping criterion      ######
-    command += " --maxGen=500";
-    command += " --steadyGen=500";
-//    # --minGen=0                               # -g : Minimum number of generations
-//    # --maxEval=0                              # -E : Maximum number of evaluations (0 = none)
-//    command += " --targetFitness=0";
-//    # --CtrlC=0                                # -C : Terminate current generation upon Ctrl C
-
-//    ######    Variation Operators     ######
-    command += " --objectBounds=28[0,10]";
-//    # --operator=SGA                           # -o : Description of the operator (SGA only now)
-//    # --pCross=1                               # -C : Probability of Crossover
-//    # --pMut=1                                 # -M : Probability of Mutation
-//    # --crossType=global                       # -C : Type of ES recombination (global or standard)
-//    # --crossObj=discrete                      # -O : Recombination of object variables (discrete, intermediate or none)
-//    # --crossStdev=intermediate                # -S : Recombination of mutation strategy parameters (intermediate, discrete or none)
-//    # --TauLoc=1                               # -l : Local Tau (before normalization)
 
     if (ui->bExecute->text() == "Execute")
     {
@@ -163,11 +109,13 @@ void MainWindow::loadPopulation(int index, QString answer)
         values = populations[pop].split(" ");
     }
 
-    int size = values[2].toInt();
+    int size = House::house->rooms * 4;
 
     vector<double> genome;
-    for (int i = 3; i < size+3; i++)
-        genome.push_back(values[i].toDouble());
+    int i = 0;
+    for (; values[i].toDouble() != size; i++);
+    for (int j = i+1; (j < values.size()) && (j - i <= size); j++)
+        genome.push_back(values[j].toDouble());
 
     ui->viewer->setGenome(genome);
     displayEvaluations();
