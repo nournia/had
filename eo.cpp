@@ -14,6 +14,43 @@ using namespace std;
 
 #include "/home/alireza/repo/had/evaluate.h"
 
+
+template<class GenotypeT>
+class RoomExchangeCrossover: public eoQuadOp<GenotypeT>
+{
+    const double pExchange;
+public:
+    RoomExchangeCrossover(double _pExchange = 0.1)
+        : pExchange(_pExchange)
+    {}
+
+    string className() const { return "RoomExchangeCrossover"; }
+
+    // eoQuad crossover - modifies both parents
+    bool operator()(GenotypeT& g1, GenotypeT & g2)
+    {
+        bool oneAtLeastIsModified(false);
+
+        double tmp;
+        const size_t rooms = House::house->rooms;
+        for (size_t t, j, i = 0; i < rooms; i++)
+            if (rng.flip(pExchange))
+            {
+                for (t = 4*i, j = 0; j < 4; j++)
+                {
+                    tmp = g1[t+j];
+                    g1[t+j] = g2[t+j];
+                    g2[t+j] = tmp;
+                }
+
+                if (!oneAtLeastIsModified) oneAtLeastIsModified = true;
+            }
+
+        return oneAtLeastIsModified;
+    }
+};
+
+
 template <class EOT>
 eoGenOp<EOT> & do_make_op(EOT, eoParser& parser, eoState& state)
 {
@@ -32,7 +69,7 @@ eoGenOp<EOT> & do_make_op(EOT, eoParser& parser, eoState& state)
     state.storeFunctor(mutation);
 
     // xover
-    ptQuad = new eoHypercubeCrossover<EOT>(P_EXCHANGE); state.storeFunctor(ptQuad);
+    ptQuad = new RoomExchangeCrossover<EOT>(P_EXCHANGE); state.storeFunctor(ptQuad);
     xover = new eoPropCombinedQuadOp<EOT>(*ptQuad, 1);
 
     // mutation
