@@ -1,0 +1,9 @@
+/home/alireza/repo/paradiseo/paradiseo-moeo/build/tutorial/Lesson1/Sch1
+
+--mutEpsilon=0.2
+--maxGen=500
+
+--resDir=/home/alireza/repo/had/input
+--eraseDir=1
+--saveFrequency=50
+
