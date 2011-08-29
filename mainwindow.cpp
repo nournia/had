@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->gGenome->setVisible(false);
+
     QFile file("had.param");
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         ui->eCommand->setPlainText(file.readAll());
@@ -125,6 +127,12 @@ void MainWindow::displayEvaluations()
 {
     vector<double> genome = ui->viewer->genome;
 
+    int size = House::house->rooms * 4;
+    QString tmp = QString("%1").arg(size);
+    for (int i = 0; i < size; i++)
+        tmp += QString(" %1").arg(genome[i]);
+    ui->eGenome->setText(tmp);
+
     ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
     House* house = House::house;
@@ -193,12 +201,6 @@ void MainWindow::on_bLoad_clicked()
     }
 }
 
-void MainWindow::on_bSample_clicked()
-{
-    // livingroom, kitchen, bedroom1, bedroom2, bathroom, toilet, stairs, elevator
-    loadPopulation(-1, "x x 28 " "2.9 0 4.35 2.7 " "7.25 0 2.9 3.85 " "7.25 5.35 2.9 4.25 " "7.25 3.85 2.9 1.5 " "0 6.85 2 2.75 " "0 0 2.9 4.35 " "0 4.35 2 1.35");
-}
-
 void MainWindow::on_sSeed_editingFinished()
 {
     ui->bExecute->click();
@@ -221,4 +223,14 @@ void MainWindow::on_bSaveImage_clicked()
     QDir current;
     current.mkdir("img");
     img->save("img/" + QDateTime::currentDateTime().toString() + ".jpg", "jpg", 100);
+}
+
+void MainWindow::on_bGenome_clicked()
+{
+    ui->gGenome->setVisible(! ui->gGenome->isVisible());
+}
+
+void MainWindow::on_bApplyGenome_clicked()
+{
+    loadPopulation(-1, ui->eGenome->text());
 }

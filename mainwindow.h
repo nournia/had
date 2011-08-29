@@ -58,11 +58,13 @@ private slots:
 
     void on_bLoad_clicked();
 
-    void on_bSample_clicked();
-
     void on_sSeed_editingFinished();
 
     void on_bSaveImage_clicked();
+
+    void on_bGenome_clicked();
+
+    void on_bApplyGenome_clicked();
 
 private:
     Ui::MainWindow *ui;
