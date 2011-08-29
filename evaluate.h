@@ -9,7 +9,7 @@ using namespace std;
 
 typedef const std::vector<double>& GENOME;
 
-const double areaCoeff = 3, intersectionCoeff = 3, accessCoeff = 1.5, lightCoeff = 0.25, spaceCoeff = 0.75, sideCoeff = 0.25;
+const double areaCoeff = 3, intersectionCoeff = 3, sideCoeff = 0, accessCoeff = 1.5, lightCoeff = 0.25, spaceCoeff = 0.75;
 
 
 // Geometry
@@ -334,6 +334,7 @@ public:
         double penalty = 0;
 
         for (int i = 0; i < rooms; i++)
+        {
             if (room[i].sizeLimit.width)
             {
                 double w1 = room[i].rect.getWidth() - wall, h1 = room[i].rect.getHeight() - wall,
@@ -348,26 +349,29 @@ public:
                     wd = w2 - h1; hd = h2 - w1;
                 }
 
-                penalty += exp((wd > 0 ? wd : 0) + (hd > 0 ? hd : 0));
+                penalty += (wd > 0 ? exp(wd) : 0) + (hd > 0 ? exp(hd) : 0);
 
             } else
             {
                 const double minRatio = 0.7, iMinRatio = 1.0 / minRatio;
 
                 double w = room[i].rect.getWidth(), h = room[i].rect.getHeight();
-                if (w > h)
+                if (w < h)
                 {
                     w = room[i].rect.getHeight(); h = room[i].rect.getWidth();
                 }
 
-                if (h > (w * iMinRatio))
-                    h = w * iMinRatio;
+                if (w > (h * iMinRatio))
+                    w = h * iMinRatio;
                 else
-                    w = h * minRatio;
+                    h = w * minRatio;
 
-                double ad = room[i].areaLimit - (w * h);
+                double area = (h * w * (h < 0 && w < 0 ? -1 : 1));
+                if (area < 0) area *= 10;
+                double ad = room[i].areaLimit - area;
                 penalty += ad > 0 ? 2 * areaToDistance(ad) : 0;
             }
+        }
 
         return areaCoeff * penalty;
     }
