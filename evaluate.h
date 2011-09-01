@@ -9,7 +9,7 @@ using namespace std;
 
 typedef const std::vector<double>& GENOME;
 
-const double areaCoeff = 3, intersectionCoeff = 3, sideCoeff = 0, accessCoeff = 1.5, lightCoeff = 0.25, spaceCoeff = 0.75;
+const double areaCoeff = 3, intersectionCoeff = 3, sideCoeff = 0.25, accessCoeff = 1.5, lightCoeff = 0.25, spaceCoeff = 0.75;
 
 
 // Geometry
