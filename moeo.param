@@ -1,9 +1,14 @@
 /home/alireza/repo/paradiseo/paradiseo-moeo/build/tutorial/Lesson1/Sch1
 
---mutEpsilon=0.2
---maxGen=500
+--maxGen=1000
+--popSize=20
 
 --resDir=/home/alireza/repo/had/input
 --eraseDir=1
---saveFrequency=50
+--saveFrequency=10
 
+--pMut=1
+--mutEpsilon=0.05
+--pRoomSwapMut=0.2
+--pCross=0.1
+--pRoomExchangeCross=0.1

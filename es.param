@@ -1,11 +1,14 @@
-/home/alireza/repo/EO-1.2.0/eo/release/tutorial/Lesson4/had
+/home/alireza/repo/EO-1.2.0/eo/release/tutorial/Lesson4/ESEA
 
---maxGen=2000
---steadyGen=2000
+--maxGen=500
+--steadyGen=500
 --popSize=50
 
+--Isotropic=1
+--Stdev=0
+--Correl=0
 --selection=Sequential
---nbOffspring=100%
+--nbOffspring=700%
 --replacement=Comma
 --weakElitism=1
 
@@ -16,9 +19,3 @@
 --resDir=/home/alireza/repo/had/input
 --eraseDir=1
 --saveFrequency=10
-
---pMut=1
---mutEpsilon=0.05
---pRoomSwapMut=0.2
---pCross=0.1
---pRoomExchangeCross=0.1

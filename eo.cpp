@@ -137,35 +137,10 @@ void runAlgorithm(EOT, eoParser& _parser, eoState& _state);
 
 int main_function(int argc, char *argv[])
 {
-    // Create the command-line parser
     eoParser parser(argc, argv); // for user-parameter reading
     eoState state; // keeps all things allocated
 
-    eoValueParam<bool>& simpleParam = parser.createParam(true, "Isotropic", "Isotropic self-adaptive mutation", 'i', "ES mutation");
-    eoValueParam<bool>& stdevsParam = parser.createParam(false, "Stdev", "One self-adaptive stDev per variable", 's', "ES mutation");
-    eoValueParam<bool>& corrParam = parser.createParam(false, "Correl", "Use correlated mutations", 'c', "ES mutation");
-
-    // Run the appropriate algorithm
-    if (simpleParam.value() == false)
-    {
-        cout << "Using eoReal" << endl;
-        runAlgorithm(eoReal<FitT>(), parser, state);
-    }
-    else if (stdevsParam.value() == false)
-    {
-        cout << "Using eoEsSimple" << endl;
-        runAlgorithm(eoEsSimple<FitT>(), parser, state);
-    }
-    else if (corrParam.value() == false)
-    {
-        cout << "Using eoEsStdev" << endl;
-        runAlgorithm(eoEsStdev<FitT>(), parser, state);
-    }
-    else
-    {
-        cout << "Using eoEsFull" << endl;
-        runAlgorithm(eoEsFull<FitT>(), parser, state);
-    }
+    runAlgorithm(eoReal<FitT>(), parser, state);
 
     return 0;
 }
@@ -197,7 +172,6 @@ void runAlgorithm(EOT, eoParser& _parser, eoState& _state)
     eoRealInitBounded<EOT>& init = make_genotype(_parser, _state, EOT());
 
     eoGenOp<EOT>& op = do_make_op(EOT(), _parser, _state);
-    //    eoGenOp<EOT>& op = make_op(_parser, _state, init);
 
     // initialize the population - and evaluate
     eoPop<EOT>& pop = make_pop(_parser, _state, init);
@@ -212,4 +186,3 @@ void runAlgorithm(EOT, eoParser& _parser, eoState& _state)
     make_help(_parser);
     // pop.sortedPrintOn(cout);
 }
-
