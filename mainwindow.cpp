@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     thread = new GAThread("");
     connect(thread, SIGNAL(finished()), this, SLOT(on_bExecute_clicked()));
 
+    viewerThread = new ViewerThread(this);
+
     resize(800, 600);
     this->move(QApplication::desktop()->screen()->rect().center()-this->rect().center());
 }
@@ -32,6 +34,15 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void ViewerThread::run()
+{
+    while(1)
+    {
+        msleep(100);
+        ((MainWindow*)parent)->on_bLoad_clicked();
+    }
 }
 
 // filename: "generations#.sav"
@@ -55,14 +66,18 @@ void MainWindow::on_bExecute_clicked()
     {
         thread->command = command;
         thread->start();
+        viewerThread->start();
+
         ui->bExecute->setText("Stop");
         ui->bExecute->setEnabled(false);
     } else
     {
-        thread->quit();
+        thread->terminate();
+        viewerThread->terminate();
+        on_bLoad_clicked();
+
         ui->bExecute->setText("Execute");
         ui->bExecute->setEnabled(true);
-        on_bLoad_clicked();
     }
 
 }

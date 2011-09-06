@@ -4,10 +4,11 @@
 
 #include <QThread>
 #include <QProcess>
+#include <QMainWindow>
 
 class GAThread : public QThread
- {
- public:
+{
+public:
     QString command;
 
     GAThread(QString cmd)
@@ -19,10 +20,21 @@ class GAThread : public QThread
         QProcess process;
         process.execute(command);
     }
- };
+};
 
 
-#include <QMainWindow>
+class ViewerThread : public QThread
+{
+public:
+    QWidget* parent;
+
+    ViewerThread(QWidget* _parent)
+        : parent(_parent)
+    {}
+
+    void run();
+};
+
 
 namespace Ui {
     class MainWindow;
@@ -40,12 +52,13 @@ public:
     int gen, pop;
 
     GAThread* thread;
+    ViewerThread* viewerThread;
 
     void loadGeneration(int index);
     void loadPopulation(int index, QString answer = "");
 
 
-private slots:
+public slots:
     void displayEvaluations();
 
     void on_bExecute_clicked();
