@@ -90,6 +90,8 @@ void MainWindow::loadGeneration(int index)
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
+    setWindowTitle(QString("Human Aided Design") + " - " + QFileInfo(generations[gen]).fileName());
+
     populations.clear();
     while (!file.atEnd()) {
         QString line = file.readLine();
@@ -201,6 +203,9 @@ void MainWindow::on_bLoad_clicked()
     generations.clear();
     QDir dir("/home/alireza/repo/had/input");
     QFileInfoList list = dir.entryInfoList();
+
+    if (list.size() == 0) return;
+
     for (int i = 0; i < list.size(); i++)
         if (list.at(i).filePath().endsWith(".sav"))
             generations << list.at(i).filePath();

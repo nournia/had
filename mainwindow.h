@@ -17,8 +17,14 @@ public:
 
     void run()
     {
-        QProcess process;
-        process.execute(command);
+        static QString lastCommand;
+
+        if (command != lastCommand)
+        {
+            lastCommand = command;
+            QProcess process;
+            process.execute(command);
+        }
     }
 };
 
