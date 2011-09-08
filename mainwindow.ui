@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>672</width>
-    <height>504</height>
+    <height>544</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,6 +63,13 @@
            <widget class="QSlider" name="sGenerations">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lPopulation">
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -297,6 +304,13 @@
          </property>
          <property name="plainText">
           <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chFeasible">
+         <property name="text">
+          <string>Only Feasible Solutions</string>
          </property>
         </widget>
        </item>

@@ -40,7 +40,7 @@ void ViewerThread::run()
 {
     while(1)
     {
-        msleep(100);
+        msleep(200);
         ((MainWindow*)parent)->on_bLoad_clicked();
     }
 }
@@ -84,6 +84,7 @@ void MainWindow::on_bExecute_clicked()
 
 void MainWindow::loadGeneration(int index)
 {
+    if (index < 0 || index > generations.size() - 1) return;
     gen = index;
 
     QFile file(generations[gen]);
@@ -105,36 +106,78 @@ void MainWindow::loadGeneration(int index)
         }
     }
 
+    if (ui->chFeasible->isChecked())
+        pruneSolutions();
+
+    ui->lPopulation->setText(QString("%1").arg(populations.size()));
+
     loadPopulation(0);
+}
+
+vector<double> getGenome(QString g)
+{
+    vector<double> genome;
+    QStringList values = g.split(" ");
+    int size = House::house->rooms * 4;
+
+    int i = 0;
+    for (; values[i].toDouble() != size; i++);
+    for (int j = i+1; (j < values.size()) && (j - i <= size); j++)
+        genome.push_back(values[j].toDouble());
+
+    return genome;
+}
+double genomeDiff(vector<double> g1, vector<double> g2)
+{
+    double diff = 0;
+    for (size_t i = 0; i < g1.size(); i++)
+        diff += fabs(g1[i] - g2[i]);
+    return diff;
+}
+
+void MainWindow::pruneSolutions()
+{
+    QStringList results;
+    House* house = House::house;
+    const double maxPenalty = 4, minDiff = 5;
+
+    for (size_t i = 0; i < populations.size(); i++)
+    {
+        vector<double> genome = getGenome(populations[i]);
+        house->update(genome);
+
+        if (house->getAreaPenalty() + house->getIntersectionPenalty() < maxPenalty)
+        {
+            bool newResult = true;
+            for (size_t j = 0; j < results.size(); j++)
+                if (genomeDiff(genome, getGenome(results[j])) < minDiff)
+                    newResult = false;
+
+            if (newResult)
+                results << populations[i];
+        }
+    }
+    populations = results;
 }
 
 double present(double value)
 {
     return round(1000 * value) / 1000;
 }
-
 void MainWindow::loadPopulation(int index, QString answer)
 {
-    QStringList values;
+    vector<double> genome;
 
     if (!answer.isEmpty())
-       values = answer.split(" ");
-    else
+       genome = getGenome(answer);
+    else if (populations.size() > 0)
     {
         if (index < 0) index = 0;
         if (index >= populations.count()) index = populations.count() - 1;
         pop = index;
 
-        values = populations[pop].split(" ");
+        genome = getGenome(populations[pop]);
     }
-
-    int size = House::house->rooms * 4;
-
-    vector<double> genome;
-    int i = 0;
-    for (; values[i].toDouble() != size; i++);
-    for (int j = i+1; (j < values.size()) && (j - i <= size); j++)
-        genome.push_back(values[j].toDouble());
 
     ui->viewer->setGenome(genome);
     displayEvaluations();
@@ -143,8 +186,12 @@ void MainWindow::loadPopulation(int index, QString answer)
 void MainWindow::displayEvaluations()
 {
     vector<double> genome = ui->viewer->genome;
+    House* house = House::house;
+    int size = house->rooms * 4;
 
-    int size = House::house->rooms * 4;
+    if (genome.size() < size)
+        return;
+
     QString tmp = QString("%1").arg(size);
     for (int i = 0; i < size; i++)
         tmp += QString(" %1").arg(genome[i]);
@@ -152,13 +199,10 @@ void MainWindow::displayEvaluations()
 
     ui->lSum->setText(QString("%1").arg(present(real_value(genome))));
 
-    House* house = House::house;
-
     double areaPenalty = 0, intersectionPenalty = 0, accessPenalty = 0, lightPenalty = 0, spacePenalty = 0, sidePenalty = 0;
     areaPenalty = house->getAreaPenalty();
-    sidePenalty = house->getSidePenalty();
-
     intersectionPenalty = house->getIntersectionPenalty();
+    sidePenalty = house->getSidePenalty();
 
     house->updateSpaces();
     vector<Rect>& spaces = house->spaces;
@@ -253,4 +297,9 @@ void MainWindow::on_bGenome_clicked()
 void MainWindow::on_bApplyGenome_clicked()
 {
     loadPopulation(-1, ui->eGenome->text());
+}
+
+void MainWindow::on_chFeasible_clicked()
+{
+    on_bLoad_clicked();
 }

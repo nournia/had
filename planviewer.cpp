@@ -14,6 +14,7 @@ PlanViewer::PlanViewer(QWidget *parent) :
 
 void PlanViewer::setGenome(vector<double> g)
 {
+    spaces.clear();
     genome = g;
     update();
 }
@@ -28,9 +29,6 @@ void PlanViewer::paintEvent(QPaintEvent * event)
 
 void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
 {
-    if (genome.size() <= 0)
-        return;
-
     QStringList rooms = QStringList() << "kitchen" << "bedroom1" << "bedroom2" << "bathroom" << "toilet" << "stairs" << "elevator";
 
     space_width = 10.6, space_height = 10.05, wall = 0.15, out_wall = 0.3;
@@ -41,6 +39,7 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
     painter.setBrush(QBrush(QColor(255, 255, 255)));
     painter.drawRect(QRect(0, 0, round(r * space_width), round(r * space_height)));
 
+    if (genome.size() > 0)
     for (int i = 0; i < rooms.count(); i++)
     {
         QRect room(round(r * (genome[4*i] + out_wall)), round(r * (genome[4*i+1] + out_wall)), round(r * (genome[4*i+2] - wall)), round(r * (genome[4*i+3] - wall)));
@@ -51,33 +50,21 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
         painter.setPen(QColor(50, 50, 50, 120));
         painter.setBrush(QBrush(QColor(0, 0, 255, 30)));
         painter.drawRect(room);
-
-//        // resize button
-//        if (development)
-//        {
-//            painter.setPen(Qt::NoPen);
-//            painter.setBrush(QBrush(QColor(0, 255, 0, 100)));
-//            double x1 = room.bottomRight().x() - resizeButtonWidth, y1 = room.bottomRight().y() - resizeButtonWidth;
-//            painter.drawRect(x1, y1, resizeButtonWidth, resizeButtonWidth);
-//        }
     }
 
 
     // Spaces
-    if (development)
+    painter.setPen(QColor(50, 50, 50, 80));
+
+    for (int i = 0; i < spaces.size(); i++)
     {
-        painter.setPen(QColor(50, 50, 50, 80));
+        if (i == 0)
+            painter.setBrush(QBrush(QColor(255, 255, 0, 40)));
+        else
+            painter.setBrush(QBrush(QColor(50, 50, 50, 5)));
 
-        for (int i = 0; i < spaces.size(); i++)
-        {
-            if (i == 0)
-                painter.setBrush(QBrush(QColor(255, 255, 0, 40)));
-            else
-                painter.setBrush(QBrush(QColor(50, 50, 50, 5)));
-
-            QRect space(r * (spaces[i].left() + out_wall), r * (spaces[i].top() + out_wall), r * (spaces[i].width() - wall), r * (spaces[i].height() - wall));
-            painter.drawRect(space);
-        }
+        QRect space(r * (spaces[i].left() + out_wall), r * (spaces[i].top() + out_wall), r * (spaces[i].width() - wall), r * (spaces[i].height() - wall));
+        painter.drawRect(space);
     }
 }
 

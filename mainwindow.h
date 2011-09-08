@@ -63,6 +63,7 @@ public:
     void loadGeneration(int index);
     void loadPopulation(int index, QString answer = "");
 
+    void pruneSolutions(); // a diverse set of feasible solutions
 
 public slots:
     void displayEvaluations();
@@ -84,6 +85,8 @@ public slots:
     void on_bGenome_clicked();
 
     void on_bApplyGenome_clicked();
+
+    void on_chFeasible_clicked();
 
 private:
     Ui::MainWindow *ui;
