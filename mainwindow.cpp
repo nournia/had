@@ -139,14 +139,14 @@ void MainWindow::pruneSolutions()
 {
     QStringList results;
     House* house = House::house;
-    const double maxPenalty = 4, minDiff = 5;
+    const double maxPenalty = 2.5, minDiff = 5;
 
     for (size_t i = 0; i < populations.size(); i++)
     {
         vector<double> genome = getGenome(populations[i]);
         house->update(genome);
 
-        if (house->getAreaPenalty() + house->getIntersectionPenalty() < maxPenalty)
+        if (house->getAreaPenalty() < maxPenalty && house->getIntersectionPenalty() < maxPenalty)
         {
             bool newResult = true;
             for (size_t j = 0; j < results.size(); j++)

@@ -10,7 +10,6 @@
 --weakElitism=1
 
 --vecSize=28
---sigmaInit=0.8%
 --initBounds=28[0,6]
 --printBestStat=0
 --resDir=/home/alireza/repo/had/input
