@@ -54,16 +54,17 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    QStringList generations, populations;
+    QStringList generations, population, selectedSolutions, processedFiles;
     int gen, pop;
 
     GAThread* thread;
     ViewerThread* viewerThread;
 
     void loadGeneration(int index);
-    void loadPopulation(int index, QString answer = "");
-
-    void pruneSolutions(); // a diverse set of feasible solutions
+    void sortPopulation();
+    void loadSolution(int index, QString answer = "");
+    void addNewSelectedSolution(QString& item, QStringList& solutions);
+    void showPopulation();
 
 public slots:
     void displayEvaluations();
@@ -78,16 +79,11 @@ public slots:
 
     void on_bLoad_clicked();
 
-    void on_sSeed_editingFinished();
-
     void on_bSaveImage_clicked();
 
     void on_bGenome_clicked();
 
     void on_bApplyGenome_clicked();
-
-    void on_chFeasible_clicked();
-
 private:
     Ui::MainWindow *ui;
 };

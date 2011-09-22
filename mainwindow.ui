@@ -308,10 +308,55 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chFeasible">
-         <property name="text">
-          <string>Only Feasible Solutions</string>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Presentation</string>
          </property>
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="1">
+           <widget class="QComboBox" name="cShow">
+            <item>
+             <property name="text">
+              <string>Noraml</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Feasibles</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Selected</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Show</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Feasible</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="sFeasible">
+            <property name="maximum">
+             <double>5.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>

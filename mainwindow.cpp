@@ -29,6 +29,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     resize(800, 600);
     this->move(QApplication::desktop()->screen()->rect().center()-this->rect().center());
+
+    connect(ui->cShow, SIGNAL(currentIndexChanged(int)), this, SLOT(on_bLoad_clicked()));
+    connect(ui->sFeasible, SIGNAL(editingFinished()), this, SLOT(on_bLoad_clicked()));
+    connect(ui->sSeed, SIGNAL(editingFinished()), this, SLOT(on_bExecute_clicked()));
 }
 
 MainWindow::~MainWindow()
@@ -64,7 +68,7 @@ void MainWindow::on_bExecute_clicked()
 
     if (ui->bExecute->text() == "Execute")
     {
-        ui->chFeasible->setChecked(false);
+        ui->cShow->setCurrentIndex(0);
 
         thread->command = command;
         thread->start();
@@ -84,38 +88,6 @@ void MainWindow::on_bExecute_clicked()
 
 }
 
-void MainWindow::loadGeneration(int index)
-{
-    if (index < 0 || index > generations.size() - 1) return;
-    gen = index;
-
-    QFile file(generations[gen]);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        return;
-
-    setWindowTitle(QString("Human Aided Design") + " - " + QFileInfo(generations[gen]).fileName());
-
-    populations.clear();
-    while (!file.atEnd()) {
-        QString line = file.readLine();
-
-        if (line.startsWith("\\section{eoPop}"))
-        {
-           int size = file.readLine().trimmed().toInt();
-
-           for (int i = 0; i < size; i++)
-               populations << file.readLine();
-        }
-    }
-
-    if (ui->chFeasible->isChecked())
-        pruneSolutions();
-
-    ui->lPopulation->setText(QString("%1").arg(populations.size()));
-
-    loadPopulation(0);
-}
-
 vector<double> getGenome(QString g)
 {
     vector<double> genome;
@@ -129,6 +101,7 @@ vector<double> getGenome(QString g)
 
     return genome;
 }
+
 double genomeDiff(vector<double> g1, vector<double> g2)
 {
     double maxDiff = 0;
@@ -137,48 +110,110 @@ double genomeDiff(vector<double> g1, vector<double> g2)
     return maxDiff;
 }
 
-void MainWindow::pruneSolutions()
+double genomeValue(QString g)
 {
-    QStringList results;
-    House* house = House::house;
-    const double maxPenalty = 2, minDiff = 5;
+    return g.split(" ")[0].toDouble();
+}
 
-    for (size_t i = 0; i < populations.size(); i++)
+void MainWindow::addNewSelectedSolution(QString& item, QStringList& solutions)
+{
+    const double minDiff = 5;
+    double maxPenalty = ui->sFeasible->value();
+
+    vector<double> genome = getGenome(item);
+    House::house->update(genome);
+
+    if (House::house->getAreaPenalty() < maxPenalty && House::house->getIntersectionPenalty() < maxPenalty)
     {
-        vector<double> genome = getGenome(populations[i]);
-        house->update(genome);
+        size_t newResult = true;
+        for (size_t j = 0; j < solutions.size(); j++)
+            if (genomeDiff(genome, getGenome(solutions[j])) < minDiff)
+            {
+                if (real_value(genome) < real_value(getGenome(solutions[j])))
+                    solutions[j] = item;
 
-        if (house->getAreaPenalty() < maxPenalty && house->getIntersectionPenalty() < maxPenalty)
+                newResult = false;
+                break;
+            }
+
+        if (newResult)
+            solutions << item;
+    }
+}
+
+void MainWindow::loadGeneration(int index)
+{
+    if (index < 0 || index > generations.size() - 1) return;
+    gen = index;
+
+    QFile file(generations[gen]);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    setWindowTitle(QString("Human Aided Design") + " - " + QFileInfo(generations[gen]).fileName());
+
+    population.clear();
+
+    while (!file.atEnd()) {
+        QString line = file.readLine();
+
+        if (line.startsWith("\\section{eoPop}"))
         {
-            bool newResult = true;
-            for (size_t j = 0; j < results.size(); j++)
-                if (genomeDiff(genome, getGenome(results[j])) < minDiff)
-                    newResult = false;
+           int size = file.readLine().trimmed().toInt();
 
-            if (newResult)
-                results << populations[i];
+           for (int i = 0; i < size; i++)
+               population << file.readLine();
         }
     }
-    populations = results;
+
+    // select solutions
+    for (size_t i = 0; i < population.size(); i++)
+        addNewSelectedSolution(population[i], selectedSolutions);
+
+    // prune solutions
+    if (ui->cShow->currentText() == tr("Feasibles"))
+    {
+        QStringList results;
+        for (size_t i = 0; i < population.size(); i++)
+            addNewSelectedSolution(population[i], results);
+        population = results;
+    }
+
+    showPopulation();
+}
+
+void MainWindow::sortPopulation()
+{
+    ui->lPopulation->setText(QString("%1").arg(population.size()));
+
+    // sort population
+    for (size_t j, i = 0; i < population.size(); i++)
+        for (j = i+1; j < population.size(); j++)
+            if (genomeValue(population[i]) > genomeValue(population[j]))
+            {
+                QString tmp = population[i];
+                population[i] = population[j];
+                population[j] = tmp;
+            }
 }
 
 double present(double value)
 {
     return round(1000 * value) / 1000;
 }
-void MainWindow::loadPopulation(int index, QString answer)
+void MainWindow::loadSolution(int index, QString answer)
 {
     vector<double> genome;
 
     if (!answer.isEmpty())
        genome = getGenome(answer);
-    else if (populations.size() > 0)
+    else if (population.size() > 0)
     {
-        if (index < 0) index = populations.count() - 1;
-        if (index >= populations.count()) index = 0;
+        if (index < 0) index = population.count() - 1;
+        if (index >= population.count()) index = 0;
         pop = index;
 
-        genome = getGenome(populations[pop]);
+        genome = getGenome(population[pop]);
     }
 
     ui->viewer->setGenome(genome);
@@ -230,12 +265,12 @@ void MainWindow::displayEvaluations()
 
 void MainWindow::on_bNext_clicked()
 {
-    loadPopulation(pop + 1);
+    loadSolution(pop + 1);
 }
 
 void MainWindow::on_bPrevious_clicked()
 {
-    loadPopulation(pop - 1);
+    loadSolution(pop - 1);
 }
 
 void MainWindow::on_sGenerations_sliderMoved(int position)
@@ -245,7 +280,7 @@ void MainWindow::on_sGenerations_sliderMoved(int position)
 
 void MainWindow::on_bLoad_clicked()
 {
-    // load input
+    // load list of generation files
     generations.clear();
     QDir dir("/home/alireza/repo/had/input");
     QFileInfoList list = dir.entryInfoList();
@@ -265,11 +300,17 @@ void MainWindow::on_bLoad_clicked()
         ui->sGenerations->setValue(generations.count()-1);
         loadGeneration(generations.count()-1);
     }
+
+    showPopulation();
 }
 
-void MainWindow::on_sSeed_editingFinished()
+void MainWindow::showPopulation()
 {
-    ui->bExecute->click();
+    if (ui->cShow->currentText() == tr("Selected"))
+        population = selectedSolutions;
+
+    sortPopulation();
+    loadSolution(0);
 }
 
 void MainWindow::on_bSaveImage_clicked()
@@ -298,10 +339,5 @@ void MainWindow::on_bGenome_clicked()
 
 void MainWindow::on_bApplyGenome_clicked()
 {
-    loadPopulation(-1, ui->eGenome->text());
-}
-
-void MainWindow::on_chFeasible_clicked()
-{
-    on_bLoad_clicked();
+    loadSolution(-1, ui->eGenome->text());
 }
