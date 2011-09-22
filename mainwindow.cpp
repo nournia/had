@@ -64,6 +64,8 @@ void MainWindow::on_bExecute_clicked()
 
     if (ui->bExecute->text() == "Execute")
     {
+        ui->chFeasible->setChecked(false);
+
         thread->command = command;
         thread->start();
         viewerThread->start();
@@ -129,24 +131,24 @@ vector<double> getGenome(QString g)
 }
 double genomeDiff(vector<double> g1, vector<double> g2)
 {
-    double diff = 0;
+    double maxDiff = 0;
     for (size_t i = 0; i < g1.size(); i++)
-        diff += fabs(g1[i] - g2[i]);
-    return diff;
+        maxDiff = max(maxDiff, fabs(g1[i] - g2[i]));
+    return maxDiff;
 }
 
 void MainWindow::pruneSolutions()
 {
     QStringList results;
     House* house = House::house;
-    const double maxPenalty = 4, minDiff = 5;
+    const double maxPenalty = 2, minDiff = 5;
 
     for (size_t i = 0; i < populations.size(); i++)
     {
         vector<double> genome = getGenome(populations[i]);
         house->update(genome);
 
-        if (house->getAreaPenalty() + house->getIntersectionPenalty() < maxPenalty)
+        if (house->getAreaPenalty() < maxPenalty && house->getIntersectionPenalty() < maxPenalty)
         {
             bool newResult = true;
             for (size_t j = 0; j < results.size(); j++)
@@ -172,8 +174,8 @@ void MainWindow::loadPopulation(int index, QString answer)
        genome = getGenome(answer);
     else if (populations.size() > 0)
     {
-        if (index < 0) index = 0;
-        if (index >= populations.count()) index = populations.count() - 1;
+        if (index < 0) index = populations.count() - 1;
+        if (index >= populations.count()) index = 0;
         pop = index;
 
         genome = getGenome(populations[pop]);

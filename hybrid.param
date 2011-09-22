@@ -1,6 +1,6 @@
 /home/alireza/repo/paradiseo-1.3/paradiseo-mo/build/tutorial/Lesson7/hybridAlgo
 
---maxGen=50
+--maxGen=200
 --steadyGen=2000
 --popSize=50
 
@@ -14,11 +14,13 @@
 --printBestStat=0
 --resDir=/home/alireza/repo/had/input
 --eraseDir=1
---saveFrequency=10
+--saveFrequency=2
 
 --pMut=1
---mutEpsilon=0.05
+--pUniformMut=0
+--eUniformMut=0.5
 --pRoomSwapMut=0.2
---pLocalSearchMut=0.8
---pCross=0.1
+--pLocalSearchMut=1
+--maxLocalSearchStep=50
+--pCross=0.2
 --pRoomExchangeCross=0.1

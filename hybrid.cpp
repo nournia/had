@@ -19,7 +19,7 @@ using namespace std;
 
 #include "/home/alireza/repo/had/evaluate.h"
 
-#include <algo/moSimpleHC.h>
+#include <algo/moNeutralHC.h>
 
 
 // Representation
@@ -82,7 +82,7 @@ public:
         _solution[kIndex] += kDiff;
         _solution.invalidate();
 
-        cout << key << "\t" << kIndex << "\t" << real_value(_solution) << "\t" << kDiff << endl;
+//        cout << key << "\t" << kIndex << "\t" << real_value(_solution) << "\t" << kDiff << endl;
     }
 
     virtual void moveBack(EOT& _solution)
@@ -98,8 +98,11 @@ public:
     {
         if (mem[key].index == -1) // move
         {
-            kIndex = size_t(28 * rng.uniform());
-            kDiff = 2 * (rng.uniform() * 2 - 1);
+            const size_t size = 4 * House::house->rooms;
+            const double hcEpsilon = 0.5;
+
+            kIndex = size_t(size * rng.uniform());
+            kDiff = hcEpsilon * (rng.uniform() * 2 - 1);
 
             mem[key].index = kIndex;
             mem[key].diff = kDiff;
@@ -194,9 +197,11 @@ eoGenOp<EOT> & do_make_op(EOT, eoParser& parser, eoState& state)
             pRoomExchangeCross = parser.createParam(0.1, "pRoomExchangeCross", "Room exchange probability in Crossover",'E',"Param").value(),
 
             pMut = parser.createParam(1, "pMut", "Mutation probability",'M',"Param").value(),
-            mutEpsilon = parser.createParam(0.01, "mutEpsilon", "epsilon for mutation",'e',"Param").value(),
+            pUniformMut = parser.createParam(0.1, "pUniformMut", "Uniform mutation probability",'M',"Param").value(),
+            eUniformMut = parser.createParam(1, "eUniformMut", "epsilon for uniform mutation",'e',"Param").value(),
             pRoomSwapMut = parser.createParam(0.01, "pRoomSwapMut", "room swap mutation probability",'r',"Param").value(),
-            pLocalSearchMut = parser.createParam(0.01, "pLocalSearchMut", "local search mutation probability",'l',"Param").value();
+            pLocalSearchMut = parser.createParam(0.01, "pLocalSearchMut", "local search mutation probability",'l',"Param").value(),
+            maxLocalSearchStep = parser.createParam(50, "maxLocalSearchStep", "maximum steps of local search operator",'h',"Param").value();
 
     eoQuadOp<EOT> *ptQuad; // tmp
     eoPropCombinedQuadOp<EOT>* xover;
@@ -205,22 +210,26 @@ eoGenOp<EOT> & do_make_op(EOT, eoParser& parser, eoState& state)
     eoMonOp<EOT> *ptMon;
     state.storeFunctor(mutation);
 
+
     // xover
     ptQuad = new RoomExchangeCrossover<EOT>(pRoomExchangeCross);
     xover = new eoPropCombinedQuadOp<EOT>(*ptQuad, 1); state.storeFunctor(ptQuad);
 
+
     // mutation
-    ptMon = new eoUniformMutation<EOT>(mutEpsilon);
-    mutation = new eoPropCombinedMonOp<EOT>(*ptMon, 1); state.storeFunctor(ptMon);
+    ptMon = new eoUniformMutation<EOT>(eUniformMut);
+    mutation = new eoPropCombinedMonOp<EOT>(*ptMon, pUniformMut); state.storeFunctor(ptMon);
+
     ptMon = new RoomSwapMutation<EOT>;
     mutation->add(*ptMon, pRoomSwapMut); state.storeFunctor(ptMon);
 
     // hc
-    hadEval<HAD> fullEval;
-    moFullEvalByModif<hadNeighbor> neighborEval(fullEval);
-    orderNeighborhood neighborhood(neighbors);
-    ptMon = new moSimpleHC<hadNeighbor>(neighborhood, fullEval, neighborEval);
+    hadEval<EOT>* fullEval = new hadEval<EOT>; state.storeFunctor(fullEval);
+    moFullEvalByModif<hadNeighbor>* neighborEval = new moFullEvalByModif<hadNeighbor>(*fullEval); state.storeFunctor(neighborEval);
+    orderNeighborhood* neighborhood = new orderNeighborhood(neighbors);
+    ptMon = new moNeutralHC<hadNeighbor>(*neighborhood, *fullEval, *neighborEval, maxLocalSearchStep);
     mutation->add(*ptMon, pLocalSearchMut); state.storeFunctor(ptMon);
+
 
     // a proportional combination of a QuadCopy and crossover
     eoProportionalOp<EOT>* cross = new eoProportionalOp<EOT> ; state.storeFunctor(cross);
