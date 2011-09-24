@@ -154,7 +154,10 @@ void PlanViewer::mouseMoveEvent(QMouseEvent *event)
 void PlanViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if (thumbnail)
+    {
+        emit selected(genome);
         return;
+    }
 
     drag = -1;
     resize_x1 = -1;

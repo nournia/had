@@ -33,6 +33,41 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->cShow, SIGNAL(currentIndexChanged(int)), this, SLOT(on_bLoad_clicked()));
     connect(ui->sFeasible, SIGNAL(editingFinished()), this, SLOT(on_bLoad_clicked()));
     connect(ui->sSeed, SIGNAL(editingFinished()), this, SLOT(on_bExecute_clicked()));
+
+    ui->grid->move(0, 0);
+    ui->frame->hide();
+}
+
+void MainWindow::resizeEvent (QResizeEvent * event)
+{
+    const int panel = 200;
+    ui->grid->resize(this->width() - panel, this->height());
+    ui->panel->move(this->width() - panel, 0);
+    ui->panel->resize(panel, this->height());
+
+    ui->frame->resize(600, 400);
+    ui->frame->move((this->width() - ui->frame->width())/2, (this->height() - ui->frame->height())/2);
+}
+
+void MainWindow::mouseMoveEvent (QMouseEvent * event)
+{
+    if (! ui->frame->underMouse())
+    {
+        ui->grid->setFocus();
+        ui->frame->hide();
+    }
+}
+
+void MainWindow::planClick(vector<double> genome)
+{
+    if (ui->frame->isVisible())
+    {
+        ui->grid->setFocus();
+        ui->frame->hide();
+        return;
+    }
+
+    showSolution(genome);
 }
 
 MainWindow::~MainWindow()
@@ -201,23 +236,12 @@ double present(double value)
 {
     return round(1000 * value) / 1000;
 }
-void MainWindow::loadSolution(int index, QString answer)
+
+void MainWindow::showSolution(vector<double> genome)
 {
-    vector<double> genome;
-
-    if (!answer.isEmpty())
-       genome = getGenome(answer);
-    else if (population.size() > 0)
-    {
-        if (index < 0) index = population.count() - 1;
-        if (index >= population.count()) index = 0;
-        pop = index;
-
-        genome = getGenome(population[pop]);
-    }
-
     ui->viewer->setGenome(genome);
     displayEvaluations();
+    ui->frame->show();
 }
 
 void MainWindow::displayEvaluations()
@@ -300,13 +324,14 @@ void MainWindow::showPopulation()
         population = selectedSolutions;
 
     sortPopulation();
-    loadSolution(0);
+
+//    showSolution(getGenome(population[0]));
 
     // show population in grid
     if (plans.size() != population.count())
     {
         QLayoutItem *child;
-        while ((child = ui->containerLayout->takeAt(0)) != 0)
+        while ((child = ui->gridLayout->takeAt(0)) != 0)
         {
             delete child->widget();
             delete child;
@@ -320,8 +345,9 @@ void MainWindow::showPopulation()
 
         for (int i = 0; i < plans.size(); i++)
         {
-            plans[i] = new PlanViewer(ui->container, true);
-            ui->containerLayout->addWidget(plans[i], i / cols, i % cols);
+            plans[i] = new PlanViewer(ui->grid, true);
+            connect(plans[i], SIGNAL(selected(vector<double>)), this, SLOT(planClick(vector<double>)));
+            ui->gridLayout->addWidget(plans[i], i / cols, i % cols);
         }
     }
 
@@ -355,5 +381,5 @@ void MainWindow::on_bGenome_clicked()
 
 void MainWindow::on_bApplyGenome_clicked()
 {
-    loadSolution(-1, ui->eGenome->text());
+    showSolution(getGenome(ui->eGenome->text()));
 }

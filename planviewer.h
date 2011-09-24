@@ -34,6 +34,7 @@ public:
 
 signals:
     void genomeChanged();
+    void selected(vector<double> genome);
 
 public slots:
 

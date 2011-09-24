@@ -57,7 +57,7 @@ public:
     ~MainWindow();
 
     QStringList generations, population, selectedSolutions, processedFiles;
-    int gen, pop;
+    int gen;
 
     GAThread* thread;
     ViewerThread* viewerThread;
@@ -66,9 +66,13 @@ public:
 
     void loadGeneration(int index);
     void sortPopulation();
-    void loadSolution(int index, QString answer = "");
     void addNewSelectedSolution(QString& item, QStringList& solutions);
+
+    void showSolution(vector<double> genome);
     void showPopulation();
+
+    void resizeEvent (QResizeEvent * event);
+    void mouseMoveEvent (QMouseEvent * event);
 
 public slots:
     void displayEvaluations();
@@ -84,6 +88,8 @@ public slots:
     void on_bGenome_clicked();
 
     void on_bApplyGenome_clicked();
+
+    void planClick(vector<double> genome);
 
 private:
     Ui::MainWindow *ui;
