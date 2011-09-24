@@ -11,7 +11,7 @@ class PlanViewer : public QWidget
 {
     Q_OBJECT
 public:
-    explicit PlanViewer(QWidget *parent = 0);
+    explicit PlanViewer(QWidget *parent = 0, bool _thumbnail = false);
 
     void paintEvent(QPaintEvent * event);
 
@@ -21,6 +21,7 @@ public:
     void setGenome(vector<double> g);
 
 private:
+    bool thumbnail;
     const int resizeWidth;
     int drag, resize_x1, resize_y1, resize_x2, resize_y2;
 

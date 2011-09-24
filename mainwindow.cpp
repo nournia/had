@@ -184,7 +184,7 @@ void MainWindow::loadGeneration(int index)
 
 void MainWindow::sortPopulation()
 {
-    ui->lPopulation->setText(QString("%1").arg(population.size()));
+//    ui->lPopulation->setText(QString("%1").arg(population.size()));
 
     // sort population
     for (size_t j, i = 0; i < population.size(); i++)
@@ -263,16 +263,6 @@ void MainWindow::displayEvaluations()
     ui->lSpacePenalty->setText(QString("%1").arg(present(spacePenalty)));
 }
 
-void MainWindow::on_bNext_clicked()
-{
-    loadSolution(pop + 1);
-}
-
-void MainWindow::on_bPrevious_clicked()
-{
-    loadSolution(pop - 1);
-}
-
 void MainWindow::on_sGenerations_sliderMoved(int position)
 {
     loadGeneration(position);
@@ -311,6 +301,32 @@ void MainWindow::showPopulation()
 
     sortPopulation();
     loadSolution(0);
+
+    // show population in grid
+    if (plans.size() != population.count())
+    {
+        QLayoutItem *child;
+        while ((child = ui->containerLayout->takeAt(0)) != 0)
+        {
+            delete child->widget();
+            delete child;
+        }
+
+        plans.resize(population.count());
+
+        // set number of columns
+        int cols = 1;
+        for (; cols*cols < population.size(); cols++);
+
+        for (int i = 0; i < plans.size(); i++)
+        {
+            plans[i] = new PlanViewer(ui->container, true);
+            ui->containerLayout->addWidget(plans[i], i / cols, i % cols);
+        }
+    }
+
+    for (int i = 0; i < population.count(); i++)
+        plans[i]->setGenome(getGenome(population[i]));
 }
 
 void MainWindow::on_bSaveImage_clicked()

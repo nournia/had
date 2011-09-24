@@ -6,6 +6,8 @@
 #include <QProcess>
 #include <QMainWindow>
 
+#include <planviewer.h>
+
 class GAThread : public QThread
 {
 public:
@@ -60,6 +62,8 @@ public:
     GAThread* thread;
     ViewerThread* viewerThread;
 
+    vector<PlanViewer*> plans;
+
     void loadGeneration(int index);
     void sortPopulation();
     void loadSolution(int index, QString answer = "");
@@ -71,10 +75,6 @@ public slots:
 
     void on_bExecute_clicked();
 
-    void on_bNext_clicked();
-
-    void on_bPrevious_clicked();
-
     void on_sGenerations_sliderMoved(int position);
 
     void on_bLoad_clicked();
@@ -84,6 +84,7 @@ public slots:
     void on_bGenome_clicked();
 
     void on_bApplyGenome_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

@@ -6,8 +6,8 @@
 
 #include <math.h>
 
-PlanViewer::PlanViewer(QWidget *parent) :
-    QWidget(parent), resizeWidth(5)
+PlanViewer::PlanViewer(QWidget *parent, bool _thumbnail) :
+    QWidget(parent), resizeWidth(5), thumbnail(_thumbnail)
 {
     mouseReleaseEvent(0);
 }
@@ -44,8 +44,11 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
     {
         QRect room(round(r * (genome[4*i] + out_wall)), round(r * (genome[4*i+1] + out_wall)), round(r * (genome[4*i+2] - wall)), round(r * (genome[4*i+3] - wall)));
 
-        painter.setPen(Qt::SolidLine);
-        painter.drawText(room, Qt::AlignCenter, rooms[i]);
+        if (!thumbnail)
+        {
+            painter.setPen(Qt::SolidLine);
+            painter.drawText(room, Qt::AlignCenter, rooms[i]);
+        }
 
         painter.setPen(QColor(50, 50, 50, 120));
         painter.setBrush(QBrush(QColor(0, 0, 255, 30)));
@@ -71,7 +74,7 @@ void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
 QPoint lastPos;
 void PlanViewer::mousePressEvent(QMouseEvent *event)
 {
-    if (genome.size() == 0)
+    if (thumbnail || genome.size() == 0)
         return;
 
     for (int i = 0; i < 7; i++)
@@ -102,6 +105,9 @@ void PlanViewer::mousePressEvent(QMouseEvent *event)
 
 void PlanViewer::mouseMoveEvent(QMouseEvent *event)
 {
+    if (thumbnail)
+        return;
+
     bool change = false;
     double xdiff = (event->pos().x() - lastPos.x())/r, ydiff = (event->pos().y() - lastPos.y())/r;
 
@@ -147,6 +153,9 @@ void PlanViewer::mouseMoveEvent(QMouseEvent *event)
 
 void PlanViewer::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (thumbnail)
+        return;
+
     drag = -1;
     resize_x1 = -1;
     resize_y1 = -1;
