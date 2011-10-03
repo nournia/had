@@ -6,6 +6,8 @@
 #include <QProcess>
 #include <QMainWindow>
 
+#include <planviewer.h>
+
 class GAThread : public QThread
 {
 public:
@@ -54,31 +56,32 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    QStringList generations, populations;
-    int gen, pop;
+    QStringList generations, population, selectedSolutions, processedFiles;
+    int gen;
 
     GAThread* thread;
     ViewerThread* viewerThread;
 
-    void loadGeneration(int index);
-    void loadPopulation(int index, QString answer = "");
+    vector<PlanViewer*> plans;
 
-    void pruneSolutions(); // a diverse set of feasible solutions
+    void loadGeneration(int index);
+    void sortPopulation();
+    void addNewSelectedSolution(QString& item, QStringList& solutions);
+
+    void showSolution(vector<double> genome);
+    void showPopulation();
+
+    void resizeEvent (QResizeEvent * event);
+    void mouseMoveEvent (QMouseEvent * event);
 
 public slots:
     void displayEvaluations();
 
     void on_bExecute_clicked();
 
-    void on_bNext_clicked();
-
-    void on_bPrevious_clicked();
-
     void on_sGenerations_sliderMoved(int position);
 
     void on_bLoad_clicked();
-
-    void on_sSeed_editingFinished();
 
     void on_bSaveImage_clicked();
 
@@ -86,7 +89,7 @@ public slots:
 
     void on_bApplyGenome_clicked();
 
-    void on_chFeasible_clicked();
+    void planClick(vector<double> genome);
 
 private:
     Ui::MainWindow *ui;
