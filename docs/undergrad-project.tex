@@ -101,8 +101,8 @@
 
 ترکیب یک نقطه‌ای از انواع عملگر ترکیبی است که برای نمایش دودویی ژنوم مورد استفاده قرار می‌گیرد. در این عملگر، یک عدد به طور تصادفی انتخاب شده و ژنوم دو والد از روی آن نقطه با هم تعویض می‌شود. یعنی جای بخش قبل از عدد تصادفی در والد اول با همین بخش در والد دوم تعویض می‌شود و به این ترتیب دو فرزند بدست می‌آید. به همین ترتیب می‌توان این کار را با چند نقطه انجام داد تا ژنهای دو والد کاملا با هم ترکیب شوند. در این حالت چند نقطه به طور اتفاقی انتخاب شده و فاصله‌ی میان آنها در دو والد با هم عوض می‌شود.
 
-\begin{figure}[h] \centerline{\includegraphics{NPointCrossover}} \caption{\label{fNPointCrossover}
- اجرای عملگر ترکیب چند نقطه‌ای
+\begin{figure} \centerline{\includegraphics[width=13cm]{NPointCrossover}} \caption{\label{fNPointCrossover}
+ اجرای عملگر ترکیب با دو نقطه
  } \end{figure}
  
 وقتی از عملگر ترکیب چند نقطه‌ای استفاده می‌کنیم، احتمال اینکه دو ژن کنار هم در هر والد، در فرزند تولید شده نیز در کنار هم بمانند، زیاد است. در مقابل، شکل دیگری از عملگر ترکیب با عنوان ترکیب یکنواخت سعی می‌کند این مشکل را حل کند. در این عملگر هر دو ژن هم شماره در دو والد با احتمال مشخصی ممکن است جابجا شوند و به این ترتیب هر ژن فرزندان ممکن است از یکی از والدها به ارث رسیده باشد.
@@ -135,17 +135,17 @@
 
 طول گام را می‌توانیم برای هر ژن به صورت جداگانه قرار دهیم و یا حتی از یک طول گام برای همه‌ی ژنها استفاده کنیم، قرار دادن یک طول که حجم محاسبات را بسیار کاهش می‌دهد در خیلی از موارد تفاوت چندانی با گامهای متمایز برای هر ژن ندارد. کامل‌ترین شکل انطباق با مساله و به عبارتی یادگیری فضای حالت، استفاده از جهش همبسته \LTRfootnote{Correlated Mutation} است که در آن باید علاوه بر طول گامهای جداگانه، به ازای هر دو ژن یک پارامتر نمایانگر میزان همبستگی میان آنها به ژنوم اضافه شود.
 
-در شکلهای زیر می‌توانیم آزادی عملی را که هر کدام از این روشها برای ما فراهم می‌کنند، مشاهده کنیم. در این شکلها نقطه‌ی سیاه نمایانگر پاسخ کنونی در فضای دو بعدی (دو ژن) و بیضی دور آن پاسخهای محتمل در گام بعدی را نمایش می‌دهد.
+در شکلهای \ref{fMutationStep}، \ref{fMutationNStep} و \ref{fCorrelatedMutation} می‌توانیم آزادی عملی را که هر کدام از این روشها برای ما فراهم می‌کنند، مشاهده کنیم. در این شکلها نقطه‌ی سیاه نمایانگر پاسخ کنونی در فضای دو بعدی (دو ژن) و بیضی دور آن پاسخهای محتمل در گام بعدی را نمایش می‌دهد.
 
-\begin{figure}[h] \centerline{\includegraphics{MutationStep}} \caption{\label{fMutationStep}
+\begin{figure}[!h] \centerline{\includegraphics[width=10cm]{MutationStep}} \caption{\label{fMutationStep}
  عملگر جهش با یک پارامتر طول گام
  } \end{figure}
  
-\begin{figure}[h] \centerline{\includegraphics{MutationNStep}} \caption{\label{fMutationNStep}
+\begin{figure}[!h] \centerline{\includegraphics[width=10cm]{MutationNStep}} \caption{\label{fMutationNStep}
  عملگر جهش با پارامترهای طول گام جداگانه برای هر ژن
  } \end{figure}
  
-\begin{figure}[h] \centerline{\includegraphics{CorrelatedMutation}} \caption{\label{fCorrelatedMutation}
+\begin{figure}[!h] \centerline{\includegraphics[width=10cm]{CorrelatedMutation}} \caption{\label{fCorrelatedMutation}
  عملگر جهش همبسته با پارامترهای طول گام برای هر ژن
  } \end{figure}
  
@@ -243,7 +243,7 @@
 \subsection{فضای دسترسی}
 ارضای معیارهای مربوط به فضای خالی میان اتاقها، کاملا وابسته به تعریفی است که از این فضا ارئه می‌کنیم. در این پروژه تعریف فضا به صورت قرار دادن مستطیلهای فرضی در پاسخ صورت گرفته است. در واقع الگوریتمی ابتکاری برای قرار دادن بزرگترین مستطیلهای ممکن برای پوشاندن فضای خالی تعریف شده است. مستطیلهای بدست آمده از این الگوریتم ماده خام برای انجام ارزیابی‌های فضایی هستند. بزرگترین و متناسب‌ترین مستطیل از میان این مستطیلها به عنوان هال انتخاب می‌شود و بقیه نقش راهرو و پیش‌فضا را بازی می‌کنند. در تعریف پیش‌فضا باید گفت که ورودی بعضی از اتاقها مثل حمام بهتر است که در تماس مستقیم با فضای دسترسی اصلی نباشد. پوشش فضایی به گونه‌ای انجام می‌شود که فضاهای خرد انتخاب نشده و فقط فضاهای قابل استفاده انتخاب شوند.
 
-\begin{figure}[h] \centerline{\includegraphics{AccessSpace}} \caption{\label{fAccessSpace}
+\begin{figure} \centerline{\includegraphics{AccessSpace}} \caption{\label{fAccessSpace}
  نمایش فضای دسترسی بین اتاقها
  } \end{figure}
 
@@ -264,7 +264,7 @@
 
 برای سنجش این معیار، میزان تداخل میان هر دو اتاق و هر اتاق با فضا خارج از محدوده نقشه را اندازه می‌گیریم. توجه کنید که منظور از میزان تداخل، مساحت مشترک میان دو اتاق نیست؛ چراکه استفاده از مساحت موجب بی‌ارزش شدن تداخل میان اتاقهای کوچک می‌شود. میزان تداخل برابر کمترین مقدار تغییر مکان لازم برای برطرف شدن تداخل میان دو اتاق است. به همین منظور فاصله‌ی عمودی و افقی خروج از حالت تداخل محاسبه شده و کمینه‌ی آنها به عنوان جریمه اعلام می‌شود.
 
-\begin{figure}[h] \centerline{\includegraphics{Intersection}} \caption{\label{fIntersection}
+\begin{figure} \centerline{\includegraphics{Intersection}} \caption{\label{fIntersection}
  میزان تداخل میان دو اتاق
  } \end{figure}
 
@@ -281,7 +281,7 @@
 
 منظور از مساحت در این بخش، مساحت قابل استفاده است. ما انتظار داریم که نسبت میان طول و عرض یک اتاق، در بازه‌ی مشخصی قرار گیرد. برای نمونه اتاقی که طول آن سه برابر عرض آن باشد قابل استفاده نیست و یا حداقل از همه مساحت آن استفاده نمی‌شود. در فرایند تکامل تولید شدن چنین پاسخهایی بسیار محتمل است، پس باید معیار را طوری تعریف کنیم که گرایش این پاسخها به سمت پاسخهای متناسب باشد. برای دستیابی به این هدف بخشی از فضا را که به نظر قابل استفاده می‌رسد، انتخاب می‌کنیم و بخش باقیمانده را نادیده می‌گیریم. به این ترتیب میزان جریمه از تفاضل مساحت مورد انتظار و مساحت قابل استفاده، محاسبه می‌شود.
 
-\begin{figure}[h] \centerline{\includegraphics{AreaRatio}} \caption{\label{fAreaRatio}
+\begin{figure} \centerline{\includegraphics{AreaRatio}} \caption{\label{fAreaRatio}
 بخشی از فضا که در ارزیابی مساحت مورد توجه قرار می‌گیرد
  } \end{figure}
 
@@ -290,14 +290,14 @@
 
 در واقع ما به دنبال پر کردن فضای خالی با کمترین تعداد مستطیل ممکن هستیم و می‌خواهیم این فضا بزرگ و قابل استفاده باشد. البته منظور از بزرگ شدن این فضا، کم کردن مساحت اتاقها نیست بلکه با توجه به جدا بودن معیار ابعاد اتاقها، نتیجه کم شدن فضاهای بی مصرف و افزوده شدن آنها به فضای دسترسی است.
 
-\begin{figure}[h] \centerline{\includegraphics{LessAccessSpaces}} \caption{\label{fLessAccessSpaces}
+\begin{figure} \centerline{\includegraphics{LessAccessSpaces}} \caption{\label{fLessAccessSpaces}
 کاهش تعداد مستطیلها حاصل مرتب چیدن اتاقها
  } \end{figure}
 
 \subsubsection{دسترسی}
 همه‌ی فضاهای مورد استفاده در ساختمان باید راهی برای دسترسی داشته باشند. نحوه دسترسی به اتاقهای ساختمان نمونه در این گزارش در شکل زیر نمایش داده شده است. همانطور که در این شکل مشاهده می‌کنید بعضی از اتاقها به طور مستقیم از فضای اصلی مورد دستیابی قرار می‌گیرند و بعضی هم برای دستیابی نیاز به یک (یا چند) واسطه دارند.
 
-\begin{figure}[h] \centerline{\includegraphics{AccessGraph}} \caption{\label{fAccessGraph}
+\begin{figure} \centerline{\includegraphics{AccessGraph}} \caption{\label{fAccessGraph}
 نمودار دسترسی میان اتاقها
  } \end{figure}
 
@@ -305,7 +305,7 @@
 
 در تعریف فضای دسترسی به تشکیل شدن آن از تعدادی مستطیل پوشاننده اشاره کردیم. جریمه‌ی ایجاد دسترسی برای هر فضا از طریق فضای اصلی را با استفاده از روشی که برای دو فضا مطرح کردیم، محاسبه می‌کنیم. در این حالت کمترین فاصله‌ی لازم برای برقراری شرط دسترسی را میان فضا و هر کدام از این مستطیلها محاسبه کرده و کمترین آنها را به عنوان جریمه دسترسی اعلام می‌کنیم.
 
-\begin{figure}[h] \centerline{\includegraphics{AccessCondition}} \caption{\label{fAccessCondition}
+\begin{figure} \centerline{\includegraphics{AccessCondition}} \caption{\label{fAccessCondition}
 شرایط وجود دسترسی میان دو اتاق
  } \end{figure}
 
@@ -316,7 +316,7 @@
 
 قرارگیری یکی از اتاقهای نیازمند نور در کنار یکی از اضلاع بهره‌مند از نور، موجب کسب امتیاز در این معیار می‌شود و میزان این امتیاز با مقدار نیاز اتاق، بهره‌مندی ضلع و سطح تماس میان آن دو رابطه مستقیم دارد. به این ترتیب تلاش بر آن است که هر اتاق نیازمند، بیشترین سطح ممکن نورگیری را داشته باشد و اتاقی که نیاز بیشتری دارد، به سمت ضلعی بهره‌مندتر تمایل پیدا می‌کند. همچنین اگر معیارهای دیگر موجود در نقشه، اقتضای محقق نشدن حداکثر نورگیری را داشته باشند، باز هم امکان نورگیری کمتر برای اتاقها با استفاده از مساحت تماس کم و یا ضلع کم نور وجود دارد.
 
-\begin{figure}[h] \centerline{\includegraphics{LightScore}} \caption{\label{fLightScore}
+\begin{figure} \centerline{\includegraphics{LightScore}} \caption{\label{fLightScore}
 نحوه محاسبه امتیاز برای معیار نور طبیعی
  } \end{figure}
 
@@ -333,13 +333,13 @@
 \subsection{واسط گرافیکی}
 خروجی فرایند تکامل رشته‌ای از اعداد است که آنها را با عنوان ژنوم می‌شناسیم. واسط گرافیکی طراحی شده برای این پروژه وظیفه‌ی نمایش این پاسخها را به صورت یک نقشه‌ی ساختمان بر عهده دارد. پردازه‌ی مربوط به فرایند تکامل طوری تنظیم شده که جمعیت پاسخها را نیز در سیر نسلها ذخیره کند. نرم‌افزار نمایشگر با قابلیت نمایش متوالی این نسلها، رویه‌ی رسیدن به پاسخ را از مراحل آغازین نشان می‌دهد. این نرم‌افزار با زبان C++ در چارچوب Qt نوشته شده است و با توجه به اجازه‌نامه‌ی این چارچوب، قابل انتشار به صورت رایگان است.
 
-\begin{figure}[h] \centerline{\includegraphics{PopulationView}} \caption{\label{fPopulationView}
+\begin{figure} \centerline{\includegraphics{PopulationView}} \caption{\label{fPopulationView}
 نمایش جمعیت حاصل فرایند تکامل
  } \end{figure}
  
  از دیگر قابلیتهای این نرم‌افزار محاسبه‌ی مقادیر معیارهای مختلف برای هر کدام از جوابها است. این ویژگی موجب تسهیل فرایند تعریف معیارها و بررسی دقیق تاثیر آنها بر هدایت فرایند تکامل می‌شود. در این راستا نرم‌افزار به کاربر اجازه می‌دهد با تغییر نقشه، نحوه تغییر مقادیر معیارها را مشاهده کند.
  
- \begin{figure}[h] \centerline{\includegraphics{EvaluationView}} \caption{\label{fEvaluationView}
+ \begin{figure} \centerline{\includegraphics{EvaluationView}} \caption{\label{fEvaluationView}
 نمایش معیارهای مختلف ارزیابی
  } \end{figure}
 
@@ -364,7 +364,7 @@
 
 والدها به طور ترتیبی از میان اعضا انتخاب می‌شوند و در هنگام انتخاب نسل جدید، فرزندان به طور کامل جایگزین نسل قبل خواهند شد. البته مکانیزیم weak elitism نیز مورد استفاده قرار گرفته که در آن بهترین والد از نسل قبل، در صورت برتری، جایگزین بدترین فرزند نسل جدید می‌شود.
 
-\begin{figure}[h] \centerline{\includegraphics{GeneticAlgorithmResults}} \caption{\label{fGeneticAlgorithmResults}
+\begin{figure} \centerline{\includegraphics{GeneticAlgorithmResults}} \caption{\label{fGeneticAlgorithmResults}
 نتایج حاصل از اجرای الگوریتم ژنتیک
 } \end{figure}
 
@@ -375,7 +375,7 @@
 
  برای آسان شدن فرایند حل، تنها یک طول گام با مقدار اولیه ۰/۸ درصد، برای همه‌ی ژنها در ژنوم قرار داده شده که طول آن را به ۲۹ عدد می‌رساند. البته قرار دادن یک طول گام برای هر ژن نیز مورد بررسی قرار گرفت ولی نتایج الگوریتم تفاوت چندانی نداشت. 
 
-\begin{figure}[h] \centerline{\includegraphics{EvolutionStrategyResults}} \caption{\label{fEvolutionStrategyResults}
+\begin{figure} \centerline{\includegraphics{EvolutionStrategyResults}} \caption{\label{fEvolutionStrategyResults}
 نتایج حاصل از اجرای الگوریتم استراتژی تکاملی
 } \end{figure}
 
@@ -386,7 +386,7 @@
 
 نکته‌ی بسیار مهم در این روش و الگوریتم ژنتیک آن است که با افزایش تعداد فرزندان تولید شده و همچنین بالا بردن نقش عملگر جهش می‌توان به خروجی‌های بهتر و البته تقریبا همگرا دست یافت. البته پیداست که این عوامل فرایند تکامل را به جستجوی محلی تبدیل می‌کنند.
 
-\begin{figure}[h] \centerline{\includegraphics{MultiObjectiveResults}} \caption{\label{fMultiObjectiveResults}
+\begin{figure} \centerline{\includegraphics{MultiObjectiveResults}} \caption{\label{fMultiObjectiveResults}
 نتایج بی‌ارزش، حاصل اجرای روش چند هدفه
 } \end{figure}
 
@@ -399,7 +399,7 @@
 
 به غیر از عملگر جهش جستجوی موضعی، عملگر جهش تغییر مکان اتاقها هم با احتمال 0/2 اعمال می‌شود. همچین ترکیب به صورت ادغام اتاقها نیز با احتمال ۰/۲ در هنگام تولید فرزند، مورد استفاده قرار می‌گیرد.
 
-\begin{figure}[h] \centerline{\includegraphics{HybridResults}} \caption{\label{fHybridResults}
+\begin{figure} \centerline{\includegraphics{HybridResults}} \caption{\label{fHybridResults}
 نتایج برگزیده از اجرای روش ترکیبی
 } \end{figure}
 
@@ -413,6 +413,10 @@
 
 ارائه‌های مختلفی را می‌توان برای حل این مساله در نظر گرفت. برای نمونه می‌توان به جای اتاقها، دیوارها را در مساله قرار داد که البته این ارائه هم ابهامات مربوط به خود را دارد. یک نوع ارائه پیشنهادی برای ادامه‌ی مسیر پروژه، بیان اتاقها تنها با یک نقطه است. در این نوع ارائه هر دیوار دقیقا وسط دو نقطه قرار گرفته است. برای تقسیم ساختمان به چند مستطیل با استفاده از نقطه‌ها، کافیست ابتدا دیوار بین دو نقطه‌ی اول را رسم کنیم تا نقشه به دو بخش تقسیم شود و سپس همین کار را برای هر بخش انجام دهیم تا هر نقطه در یک بخش قرار گیرد.
 
+\begin{figure} \centerline{\includegraphics{OnePointRepresentation}} \caption{\label{fOnePointRepresentation}
+ارائه‌ی مساله با استفاده از یک نقطه برای هر اتاق
+} \end{figure}
+
 در روش ارائه‌ی پیشنهادی هیچ دو اتاقی روی هم قرار نمی‌گیرند و همیشه فضای ساختمان با اتاقها پر می‌شود. در این ساختار معمولا تغییرات کوچک در جای نقطه‌ها موجب وقوع تغییرات کوچک در میزان ارزشمندی پاسخ می‌شود. از این شواهد می‌توان نتیجه گرفت که این مساله با فرایند تکامل قابل حل است.
 
 در حوزه‌ی ساختمانها نیز، تلاش بر عبور از خانه و رسیدن به انواع ساختمانها است. همچنین بررسی زمینهای چهار ضلعی و نه لزوما مستطیل که در ساختار شهر به وفور پیدا می‌شوند. چالشهای مربوط به ساختمانهای چند طبقه و همچنین فضاهای آزاد مثل دانشگاه نیز پیش روی این پروژه هستند. البته همه‌ی این موارد باید در کنار ارتقای کیفی معیارها و همچنین استفاده از معیارهای جدید انجام بگیرند.
@@ -425,7 +429,7 @@
 A. E. Eiben and J. E. Smith, Introduction to evolutionary computing. Springer Verlag, 2003.
 
 \bibitem{cahon_paradiseo}
-S. Cahon, N. Melab, and E.-G. Talbi, “ParadisEO: A Framework for the Reusable Design of Parallel and Distributed Metaheuristics,” Journal of Heuristics, vol. 10, pp. 357-380, May 2004.
+S. Cahon, N. Melab, and E. G. Talbi, “ParadisEO: A Framework for the Reusable Design of Parallel and Distributed Metaheuristics,” Journal of Heuristics, vol. 10, pp. 357-380, May 2004.
 
 \end{latin}
 \end{thebibliography}
