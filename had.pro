@@ -8,6 +8,7 @@ QT       += core gui
 
 TARGET = had
 TEMPLATE = app
+TRANSLATIONS = had_fa.ts
 
 
 SOURCES += main.cpp\

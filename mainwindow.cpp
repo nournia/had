@@ -185,7 +185,7 @@ void MainWindow::loadGeneration(int index)
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
-    setWindowTitle(QString("Human Aided Design") + " - " + QFileInfo(generations[gen]).fileName());
+    setWindowTitle(tr("Human Aided Design") + " - " + QFileInfo(generations[gen]).fileName());
 
     population.clear();
 
@@ -233,7 +233,7 @@ void MainWindow::sortPopulation()
 
 double present(double value)
 {
-    return round(1000 * value) / 1000;
+    return -1 * round(1000 * value) / 1000;
 }
 
 void MainWindow::showSolution(vector<double> genome)

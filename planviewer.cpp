@@ -29,7 +29,7 @@ void PlanViewer::paintEvent(QPaintEvent * event)
 
 void PlanViewer::paintOn(QPaintDevice * device, bool development, QSize page)
 {
-    QStringList rooms = QStringList() << "kitchen" << "bedroom1" << "bedroom2" << "bathroom" << "toilet" << "stairs" << "elevator";
+    QStringList rooms = QStringList() << tr("kitchen") << tr("bedroom")+" 1" << tr("bedroom")+" 2" << tr("bathroom") << tr("toilet") << tr("stairs") << tr("elevator");
 
     space_width = 10.6, space_height = 10.05, wall = 0.15, out_wall = 0.3;
     r = min(page.width() / space_width, page.height() / space_height);
