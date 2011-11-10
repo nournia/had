@@ -221,6 +221,7 @@ void MainWindow::sortPopulation()
 {
 //    ui->lPopulation->setText(QString("%1").arg(population.size()));
 
+    // sort population
     for (size_t j, i = 0; i < population.size(); i++)
         for (j = i+1; j < population.size(); j++)
             if (genomeValue(population[i]) > genomeValue(population[j]))
