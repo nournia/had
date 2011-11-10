@@ -80,6 +80,9 @@
         </item>
         <item row="1" column="1">
          <widget class="QDoubleSpinBox" name="sFeasible">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
           <property name="maximum">
            <double>5.000000000000000</double>
           </property>
@@ -122,6 +125,9 @@
         </item>
         <item row="0" column="1">
          <widget class="QSpinBox" name="sSeed">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
           <property name="minimum">
            <number>1</number>
           </property>
@@ -137,6 +143,7 @@
       <widget class="QPlainTextEdit" name="eCommand">
        <property name="font">
         <font>
+         <family>Arial</family>
          <pointsize>9</pointsize>
         </font>
        </property>
@@ -389,7 +396,6 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <zorder>widget_2</zorder>
          </widget>
         </item>
         <item>

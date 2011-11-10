@@ -101,7 +101,7 @@ void MainWindow::on_bExecute_clicked()
     QString command = ui->eCommand->toPlainText().replace("\n", " ");
     command += " --seed=" + ui->sSeed->text();
 
-    if (ui->bExecute->text() == "Execute")
+    if (ui->bExecute->text() == tr("Execute"))
     {
         ui->cShow->setCurrentIndex(0);
 
@@ -109,7 +109,7 @@ void MainWindow::on_bExecute_clicked()
         thread->start();
         viewerThread->start();
 
-        ui->bExecute->setText("Stop");
+        ui->bExecute->setText(tr("Stop"));
         ui->bExecute->setEnabled(false);
     } else
     {
@@ -117,7 +117,7 @@ void MainWindow::on_bExecute_clicked()
         viewerThread->terminate();
         on_bLoad_clicked();
 
-        ui->bExecute->setText("Execute");
+        ui->bExecute->setText(tr("Execute"));
         ui->bExecute->setEnabled(true);
     }
 

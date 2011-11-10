@@ -91,6 +91,10 @@
         <source>Image</source>
         <translation>تصویر</translation>
     </message>
+    <message>
+        <source>Stop</source>
+        <translation>توقف</translation>
+    </message>
 </context>
 <context>
     <name>PlanViewer</name>
