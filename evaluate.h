@@ -349,6 +349,7 @@ public:
                     wd = w2 - h1; hd = h2 - w1;
                 }
 
+                // penalty += (wd > 0 ? exp(wd) : -wd/10) + (hd > 0 ? exp(hd) : -hd/10);
                 penalty += (wd > 0 ? exp(wd) : 0) + (hd > 0 ? exp(hd) : 0);
 
             } else
@@ -361,10 +362,18 @@ public:
                     w = room[i].rect.getHeight(); h = room[i].rect.getWidth();
                 }
 
+                // double ext = 0;
                 if (w > (h * iMinRatio))
+                {
+                    // ext = w - h * iMinRatio;
                     w = h * iMinRatio;
+                }
                 else
+                {
+                    // ext = h - w * minRatio;
                     h = w * minRatio;
+                }
+                // penalty += ext/10;
 
                 double area = (h * w * (h < 0 && w < 0 ? -1 : 1));
                 if (area < 0) area *= 10;
