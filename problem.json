@@ -1,0 +1,24 @@
+{
+    "min length": 2,
+    "house": {
+        "space": { "width": 10, "height": 10 },
+        "rooms": {
+            "livingroom": { "area": 35 },
+            "kitchen": { "area": 15 },
+            "bedroom1": { "area": 9 },
+            "bedroom2": { "area": 12 },
+            "bathroom": { "area": 3 },
+            "toilet": { "area": 4 },
+            "stairs": { "area": 10.5 },
+            "elevator": { "area": 2.5 }
+        }
+        "access" {
+            "start": "stairs",
+            "edges": {
+                "stairs": ["livingroom", "elevator"],
+                "livingroom": ["kitchen", "bedroom1", "bedroom2", "toilet"],
+                "bedroom2": ["bathroom"]
+            }
+        }
+    }
+}
